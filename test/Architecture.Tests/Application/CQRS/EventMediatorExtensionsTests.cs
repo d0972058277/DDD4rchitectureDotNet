@@ -3,12 +3,8 @@ using Architecture.Domain;
 
 namespace Architecture.Tests.Application.CQRS
 {
-    public class EventMediatorExtensionsTests
+    public partial class EventMediatorExtensionsTests
     {
-        public class DomainEventA : IDomainEvent { };
-        public class DomainEventB : IDomainEvent { };
-        public class DomainEventC : IDomainEvent { };
-
         [Fact]
         public async Task 使用PublishDomainEventsAsync時_應該能夠識別每個範型的PublishDomainEventAsync()
         {

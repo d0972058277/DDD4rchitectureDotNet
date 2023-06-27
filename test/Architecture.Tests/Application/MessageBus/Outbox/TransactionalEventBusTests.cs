@@ -1,13 +1,10 @@
-using Architecture.Application.MessageBus;
 using Architecture.Application.MessageBus.Outbox;
 using Architecture.Application.UnitOfWork;
 
 namespace Architecture.Tests.Application.MessageBus.Outbox
 {
-    public class TransactionalEventBusTests
+    public partial class TransactionalEventBusTests
     {
-        public class SomethingIntegrationEvent : IntegrationEvent { };
-
         [Fact]
         public async Task 假如ITransactionalOutbox的UnitOfWork沒有活躍的Transaction_應該拋出InvalidOperationException的例外()
         {

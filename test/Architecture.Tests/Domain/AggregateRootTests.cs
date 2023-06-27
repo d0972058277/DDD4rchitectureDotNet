@@ -2,20 +2,8 @@ using Architecture.Domain;
 
 namespace Architecture.Tests.Domain
 {
-    public class AggregateRootTests
+    public partial class AggregateRootTests
     {
-        public class SomethingAggregate : AggregateRoot
-        {
-            public SomethingAggregate() : base(IdGenerator.NewId()) { }
-
-            public void SomethingMethod()
-            {
-                AddDomainEvent(new SomethingDomainEvent());
-            }
-        }
-
-        public class SomethingDomainEvent : IDomainEvent { }
-
         [Fact]
         public void 內部的方法使用AddDomainEvent後_應該能夠在DomainEvents中找到對應的DomainEvent()
         {
