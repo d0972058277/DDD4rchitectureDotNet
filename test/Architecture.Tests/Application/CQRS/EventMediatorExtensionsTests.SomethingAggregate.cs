@@ -1,14 +1,14 @@
 using Architecture.Domain;
 
-namespace Architecture.Tests.Domain
+namespace Architecture.Tests.Application.CQRS
 {
-    public partial class AggregateRootExtensionsTests
+    public partial class EventMediatorExtensionsTests
     {
         public class SomethingAggregate : AggregateRoot
         {
             public SomethingAggregate() : base(IdGenerator.NewId()) { }
 
-            public void SomethingMethod()
+            public void DoSomething()
             {
                 AddDomainEvent(new SomethingDomainEvent());
             }
