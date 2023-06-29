@@ -14,6 +14,12 @@ namespace Architecture.Tests.Application.CQRS.Behavior
         {
             // Given
             var unitOfWork = new Mock<IUnitOfWork>();
+            unitOfWork.Setup(m => m.BeginTransactionAsync(It.IsAny<CancellationToken>())).Callback(() =>
+            {
+                var transactionId = Guid.NewGuid();
+                unitOfWork.Setup(m => m.TransactionId).Returns(transactionId);
+                unitOfWork.Setup(m => m.HasActiveTransaction).Returns(true);
+            });
             var logger = new Mock<ILogger<UnitOfWorkBehavior<SomethingCommand, Unit>>>();
 
             var services = new ServiceCollection();

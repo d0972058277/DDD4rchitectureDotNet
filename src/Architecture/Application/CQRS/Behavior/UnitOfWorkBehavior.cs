@@ -48,7 +48,8 @@ namespace Architecture.Application.CQRS.Behavior
         private async Task<TResponse> BeginTransaction(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
             var typeName = request.GetGenericTypeName();
-            var transactionId = await _unitOfWork.BeginTransactionAsync(cancellationToken);
+            await _unitOfWork.BeginTransactionAsync(cancellationToken);
+            var transactionId = _unitOfWork.TransactionId!.Value;
 
             _logger.LogInformation("----- Begin transaction {TransactionId} for {CommandName} ({@Command})", transactionId, typeName, request);
 
