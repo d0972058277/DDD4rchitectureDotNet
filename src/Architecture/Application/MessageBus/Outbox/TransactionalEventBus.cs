@@ -14,7 +14,8 @@ namespace Architecture.Application.MessageBus.Outbox
             if (!_transactionalOutbox.UnitOfWork.HasActiveTransaction)
                 throw new InvalidOperationException("IEventBus 的實作類 TransactionalEventBus 應該要在 IUnitOfWork 有活躍的 Transaction 才可進行整合事件發佈");
 
-            await _transactionalOutbox.SaveAsync(integrationEvent, cancellationToken);
+            var transactionId = _transactionalOutbox.UnitOfWork.TransactionId!.Value;
+            await _transactionalOutbox.SaveAsync(transactionId, integrationEvent, cancellationToken);
         }
     }
 }

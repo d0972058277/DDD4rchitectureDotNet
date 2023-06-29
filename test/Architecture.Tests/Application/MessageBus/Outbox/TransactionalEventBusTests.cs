@@ -9,7 +9,7 @@ namespace Architecture.Tests.Application.MessageBus.Outbox
         public async Task 假如ITransactionalOutbox的UnitOfWork沒有活躍的Transaction_應該拋出InvalidOperationException的例外()
         {
             // Given
-            var mockUnitOfWork = new Mock<IUnitOfWork>();
+            var mockUnitOfWork = new Mock<IReadonlyUnitOfWork>();
             mockUnitOfWork.Setup(m => m.HasActiveTransaction).Returns(false);
 
             var mockTransactionalOutbox = new Mock<ITransactionalOutbox>();
@@ -29,7 +29,9 @@ namespace Architecture.Tests.Application.MessageBus.Outbox
         public async Task 假如ITransactionalOutbox的UnitOfWork有活躍的Transaction_應該順利執行ITransactionalOutbox的SaveAsync行為()
         {
             // Given
-            var mockUnitOfWork = new Mock<IUnitOfWork>();
+            var transactionId = Guid.NewGuid();
+            var mockUnitOfWork = new Mock<IReadonlyUnitOfWork>();
+            mockUnitOfWork.Setup(m => m.TransactionId).Returns(transactionId);
             mockUnitOfWork.Setup(m => m.HasActiveTransaction).Returns(true);
 
             var mockTransactionalOutbox = new Mock<ITransactionalOutbox>();
@@ -42,7 +44,7 @@ namespace Architecture.Tests.Application.MessageBus.Outbox
             await transactionalEventBus.PublishAsync(integrationEvent);
 
             // Then
-            mockTransactionalOutbox.Verify(m => m.SaveAsync(integrationEvent, default), Times.Once());
+            mockTransactionalOutbox.Verify(m => m.SaveAsync(transactionId, integrationEvent, default), Times.Once());
         }
     }
 }
