@@ -11,6 +11,7 @@ namespace Architecture.Tests.Application.CQRS
             // Given
             var aggregate = new SomethingAggregate();
             aggregate.DoSomething();
+            var domainEvents = aggregate.DomainEvents.ToList();
             var mockEventMediator = new Mock<IEventMediator>();
             var eventMediator = mockEventMediator.Object;
 
@@ -18,7 +19,7 @@ namespace Architecture.Tests.Application.CQRS
             await eventMediator.PublishAndClearDomainEvents(aggregate);
 
             // Then
-            mockEventMediator.Verify(m => m.PublishAsync(It.IsAny<SomethingDomainEvent>(), default), Times.Once());
+            mockEventMediator.Verify(m => m.PublishAsync(It.Is<SomethingDomainEvent>(e => domainEvents.Contains(e)), default), Times.Once());
         }
 
         [Fact]
@@ -33,9 +34,9 @@ namespace Architecture.Tests.Application.CQRS
             await eventMediator.PublishAsync(domainEvents);
 
             // Then
-            mockEventMediator.Verify(m => m.PublishAsync(It.IsAny<DomainEventA>(), default), Times.Once());
-            mockEventMediator.Verify(m => m.PublishAsync(It.IsAny<DomainEventB>(), default), Times.Once());
-            mockEventMediator.Verify(m => m.PublishAsync(It.IsAny<DomainEventC>(), default), Times.Once());
+            mockEventMediator.Verify(m => m.PublishAsync(It.Is<DomainEventA>(e => domainEvents.Contains(e)), default), Times.Once());
+            mockEventMediator.Verify(m => m.PublishAsync(It.Is<DomainEventB>(e => domainEvents.Contains(e)), default), Times.Once());
+            mockEventMediator.Verify(m => m.PublishAsync(It.Is<DomainEventC>(e => domainEvents.Contains(e)), default), Times.Once());
         }
     }
 }
