@@ -9,13 +9,13 @@ namespace Architecture.Tests.Application.MessageBus.Outbox
         public async Task 假如ITransactionalOutbox的UnitOfWork沒有活躍的Transaction_應該拋出InvalidOperationException的例外()
         {
             // Given
-            var mockUnitOfWork = new Mock<IReadonlyUnitOfWork>();
-            mockUnitOfWork.Setup(m => m.HasActiveTransaction).Returns(false);
+            var unitOfWork = new Mock<IReadonlyUnitOfWork>();
+            unitOfWork.Setup(m => m.HasActiveTransaction).Returns(false);
 
-            var mockTransactionalOutbox = new Mock<ITransactionalOutbox>();
-            mockTransactionalOutbox.Setup(m => m.UnitOfWork).Returns(mockUnitOfWork.Object);
+            var outboxTransactor = new Mock<IOutboxTransactor>();
+            outboxTransactor.Setup(m => m.UnitOfWork).Returns(unitOfWork.Object);
 
-            var transactionalEventBus = new TransactionalEventBus(mockTransactionalOutbox.Object);
+            var transactionalEventBus = new TransactionalEventBus(outboxTransactor.Object);
             var integrationEvent = new SomethingIntegrationEvent();
 
             // When
@@ -30,21 +30,21 @@ namespace Architecture.Tests.Application.MessageBus.Outbox
         {
             // Given
             var transactionId = Guid.NewGuid();
-            var mockUnitOfWork = new Mock<IReadonlyUnitOfWork>();
-            mockUnitOfWork.Setup(m => m.TransactionId).Returns(transactionId);
-            mockUnitOfWork.Setup(m => m.HasActiveTransaction).Returns(true);
+            var readonlyUnitOfWork = new Mock<IReadonlyUnitOfWork>();
+            readonlyUnitOfWork.Setup(m => m.TransactionId).Returns(transactionId);
+            readonlyUnitOfWork.Setup(m => m.HasActiveTransaction).Returns(true);
 
-            var mockTransactionalOutbox = new Mock<ITransactionalOutbox>();
-            mockTransactionalOutbox.Setup(m => m.UnitOfWork).Returns(mockUnitOfWork.Object);
+            var outboxTransactor = new Mock<IOutboxTransactor>();
+            outboxTransactor.Setup(m => m.UnitOfWork).Returns(readonlyUnitOfWork.Object);
 
-            var transactionalEventBus = new TransactionalEventBus(mockTransactionalOutbox.Object);
+            var transactionalEventBus = new TransactionalEventBus(outboxTransactor.Object);
             var integrationEvent = new SomethingIntegrationEvent();
 
             // When
             await transactionalEventBus.PublishAsync(integrationEvent);
 
             // Then
-            mockTransactionalOutbox.Verify(m => m.SaveAsync(transactionId, integrationEvent, default), Times.Once());
+            outboxTransactor.Verify(m => m.SaveAsync(transactionId, integrationEvent, default), Times.Once());
         }
     }
 }
