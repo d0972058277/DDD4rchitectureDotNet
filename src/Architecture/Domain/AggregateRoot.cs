@@ -2,7 +2,7 @@ using CSharpFunctionalExtensions;
 
 namespace Architecture.Domain
 {
-    public abstract class AggregateRoot<TId> : Entity<TId>, IAggregateRoot
+    public abstract class AggregateRoot<TId> : Entity<TId>, IAggregateRoot where TId : IComparable<TId>
     {
         protected AggregateRoot(TId id) : base(id) { }
 
