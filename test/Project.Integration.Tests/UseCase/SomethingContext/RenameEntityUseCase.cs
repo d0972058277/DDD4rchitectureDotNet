@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Architecture;
 using Architecture.Application.CQRS;
 using FluentAssertions;
@@ -12,6 +8,7 @@ using Project.Infrastructure;
 
 namespace Project.Integration.Tests.UseCase.SomethingContext;
 
+[Collection("Sequential")]
 public class RenameEntityUseCase
 {
     private readonly ProjectDbContext _dbContext;
