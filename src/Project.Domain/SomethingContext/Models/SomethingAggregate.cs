@@ -5,6 +5,10 @@ namespace Project.Domain.SomethingContext.Models;
 
 public class SomethingAggregate : AggregateRoot<Guid>
 {
+#nullable disable warnings
+    private SomethingAggregate() : base() { }
+#nullable enable warnings
+
     private SomethingAggregate(Guid id, SomethingEntity entity, List<SomethingValueObject> valueObjects) : base(id)
     {
         Entity = entity;
