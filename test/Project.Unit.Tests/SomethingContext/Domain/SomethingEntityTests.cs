@@ -7,7 +7,7 @@ namespace Project.Unit.Tests.SomethingContext.Domain;
 public class SomethingEntityTests
 {
     [Fact]
-    public void 應該能夠成功建立()
+    public void 帶入正確的參數_應該能夠成功建立()
     {
         // Given
         var id = IdGenerator.NewId();
