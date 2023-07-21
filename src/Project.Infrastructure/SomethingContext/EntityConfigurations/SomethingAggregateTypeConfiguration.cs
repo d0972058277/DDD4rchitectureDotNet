@@ -8,6 +8,8 @@ public class SomethingAggregateTypeConfiguration : IEntityTypeConfiguration<Some
 {
     public void Configure(EntityTypeBuilder<SomethingAggregate> builder)
     {
+        builder.ToTable("SomethingAggregate");
+
         builder.HasKey(e => e.Id);
         builder.Ignore(e => e.DomainEvents);
 
@@ -17,10 +19,19 @@ public class SomethingAggregateTypeConfiguration : IEntityTypeConfiguration<Some
             entity.Property(e => e.Name).HasColumnName("EntityName");
         });
 
-        builder.HasMany(e => e.ValueObjects)
-            .WithOne()
-            .HasForeignKey("SomethingAggregateId")
-            .OnDelete(DeleteBehavior.Cascade)
-            .Metadata.GetNavigation(false)!.SetPropertyAccessMode(PropertyAccessMode.Field);
+        builder.OwnsMany(e => e.ValueObjects, vo =>
+        {
+            vo.ToTable("SomethingAggregate_ValueObject");
+
+            vo.Property<long>("_id")
+                .ValueGeneratedOnAdd()
+                .IsRequired();
+            vo.HasKey("_id");
+
+            vo.Property(e => e.String);
+            vo.Property(e => e.Number);
+            vo.Property(e => e.Boolean);
+            vo.Property(e => e.DateTime);
+        });
     }
 }

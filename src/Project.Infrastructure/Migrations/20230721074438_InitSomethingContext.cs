@@ -16,7 +16,7 @@ namespace Project.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "SomethingAggregates",
+                name: "SomethingAggregate",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -26,12 +26,12 @@ namespace Project.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SomethingAggregates", x => x.Id);
+                    table.PrimaryKey("PK_SomethingAggregate", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "SomethingValueObjects",
+                name: "SomethingAggregate_ValueObject",
                 columns: table => new
                 {
                     _id = table.Column<long>(type: "bigint", nullable: false)
@@ -41,23 +41,23 @@ namespace Project.Infrastructure.Migrations
                     Number = table.Column<int>(type: "int", nullable: false),
                     Boolean = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     DateTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    SomethingAggregateId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci")
+                    SomethingAggregateId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SomethingValueObjects", x => x._id);
+                    table.PrimaryKey("PK_SomethingAggregate_ValueObject", x => x._id);
                     table.ForeignKey(
-                        name: "FK_SomethingValueObjects_SomethingAggregates_SomethingAggregate~",
+                        name: "FK_SomethingAggregate_ValueObject_SomethingAggregate_SomethingA~",
                         column: x => x.SomethingAggregateId,
-                        principalTable: "SomethingAggregates",
+                        principalTable: "SomethingAggregate",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SomethingValueObjects_SomethingAggregateId",
-                table: "SomethingValueObjects",
+                name: "IX_SomethingAggregate_ValueObject_SomethingAggregateId",
+                table: "SomethingAggregate_ValueObject",
                 column: "SomethingAggregateId");
         }
 
@@ -65,10 +65,10 @@ namespace Project.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "SomethingValueObjects");
+                name: "SomethingAggregate_ValueObject");
 
             migrationBuilder.DropTable(
-                name: "SomethingAggregates");
+                name: "SomethingAggregate");
         }
     }
 }

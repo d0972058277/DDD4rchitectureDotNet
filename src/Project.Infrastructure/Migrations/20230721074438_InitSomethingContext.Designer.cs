@@ -11,7 +11,7 @@ using Project.Infrastructure;
 namespace Project.Infrastructure.Migrations
 {
     [DbContext(typeof(ProjectDbContext))]
-    [Migration("20230721064832_InitSomethingContext")]
+    [Migration("20230721074438_InitSomethingContext")]
     partial class InitSomethingContext
     {
         /// <inheritdoc />
@@ -30,36 +30,7 @@ namespace Project.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("SomethingAggregates");
-                });
-
-            modelBuilder.Entity("Project.Domain.SomethingContext.Models.SomethingValueObject", b =>
-                {
-                    b.Property<long>("_id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    b.Property<bool>("Boolean")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<DateTime>("DateTime")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("Number")
-                        .HasColumnType("int");
-
-                    b.Property<Guid?>("SomethingAggregateId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("String")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("_id");
-
-                    b.HasIndex("SomethingAggregateId");
-
-                    b.ToTable("SomethingValueObjects");
+                    b.ToTable("SomethingAggregate", (string)null);
                 });
 
             modelBuilder.Entity("Project.Domain.SomethingContext.Models.SomethingAggregate", b =>
@@ -80,7 +51,39 @@ namespace Project.Infrastructure.Migrations
 
                             b1.HasKey("SomethingAggregateId");
 
-                            b1.ToTable("SomethingAggregates");
+                            b1.ToTable("SomethingAggregate");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SomethingAggregateId");
+                        });
+
+                    b.OwnsMany("Project.Domain.SomethingContext.Models.SomethingValueObject", "ValueObjects", b1 =>
+                        {
+                            b1.Property<long>("_id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("bigint");
+
+                            b1.Property<bool>("Boolean")
+                                .HasColumnType("tinyint(1)");
+
+                            b1.Property<DateTime>("DateTime")
+                                .HasColumnType("datetime(6)");
+
+                            b1.Property<int>("Number")
+                                .HasColumnType("int");
+
+                            b1.Property<Guid>("SomethingAggregateId")
+                                .HasColumnType("char(36)");
+
+                            b1.Property<string>("String")
+                                .IsRequired()
+                                .HasColumnType("longtext");
+
+                            b1.HasKey("_id");
+
+                            b1.HasIndex("SomethingAggregateId");
+
+                            b1.ToTable("SomethingAggregate_ValueObject", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("SomethingAggregateId");
@@ -88,18 +91,7 @@ namespace Project.Infrastructure.Migrations
 
                     b.Navigation("Entity")
                         .IsRequired();
-                });
 
-            modelBuilder.Entity("Project.Domain.SomethingContext.Models.SomethingValueObject", b =>
-                {
-                    b.HasOne("Project.Domain.SomethingContext.Models.SomethingAggregate", null)
-                        .WithMany("ValueObjects")
-                        .HasForeignKey("SomethingAggregateId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("Project.Domain.SomethingContext.Models.SomethingAggregate", b =>
-                {
                     b.Navigation("ValueObjects");
                 });
 #pragma warning restore 612, 618
