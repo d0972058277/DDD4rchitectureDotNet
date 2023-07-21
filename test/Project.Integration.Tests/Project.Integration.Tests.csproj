@@ -10,9 +10,16 @@
 
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="6.11.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.9" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.3" />
     <PackageReference Include="Moq" Version="4.18.4" />
+    <PackageReference Include="Serilog.Exceptions" Version="8.4.0+build.694" />
+    <PackageReference Include="Serilog.Exceptions.EntityFrameworkCore" Version="8.4.0+build.694" />
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="7.0.0" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="7.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
+    <PackageReference Include="Serilog.Sinks.Seq" Version="5.2.2" />
     <PackageReference Include="xunit" Version="2.5.0" />
     <PackageReference Include="Xunit.DependencyInjection" Version="8.7.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.0">
@@ -28,6 +35,12 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Project.Application\Project.Application.csproj" />
     <ProjectReference Include="..\..\src\Project.Infrastructure\Project.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

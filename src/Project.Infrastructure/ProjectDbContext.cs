@@ -6,7 +6,8 @@ namespace Project.Infrastructure;
 
 public class ProjectDbContext : DbContext
 {
-    public ProjectDbContext(DbContextOptions options) : base(options) { }
+    protected ProjectDbContext(DbContextOptions options) : base(options) { }
+    public ProjectDbContext(DbContextOptions<ProjectDbContext> options) : base(options) { }
 
     public DbSet<SomethingAggregate> SomethingAggregates => Set<SomethingAggregate>();
 
