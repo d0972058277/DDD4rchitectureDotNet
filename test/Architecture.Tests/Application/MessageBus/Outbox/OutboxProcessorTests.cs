@@ -25,7 +25,7 @@ public class OutboxProcessorTests
     }
 
     [Fact]
-    public async Task 進行PublishAsync_應該會將TransactionId代表的IntegrationEvent進行發佈()
+    public async Task 進行ProcessAsync_應該會將TransactionId代表的IntegrationEvent進行處理()
     {
         // Given
         var integrationEventEntry = GetIntegrationEventEntry();
@@ -41,7 +41,7 @@ public class OutboxProcessorTests
         outboxProcessor.Enqueue(integrationEventEntry.TransactionId);
 
         // When
-        await outboxProcessor.PublishAsync(default);
+        await outboxProcessor.ProcessAsync(default);
 
         // Then
         transactionalQueue.TransactionIds.Should().BeEmpty();

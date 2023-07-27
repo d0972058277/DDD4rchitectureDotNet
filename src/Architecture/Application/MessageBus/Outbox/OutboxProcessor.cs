@@ -18,7 +18,7 @@ public class OutboxProcessor
         _queue.Enqueue(transactionId);
     }
 
-    public async Task PublishAsync(CancellationToken cancellationToken = default)
+    public async Task ProcessAsync(CancellationToken cancellationToken = default)
     {
         var transactionIds = _queue.Dequeue();
         var integrationEventEntries = await _repository.FindAsync(transactionIds, cancellationToken);
