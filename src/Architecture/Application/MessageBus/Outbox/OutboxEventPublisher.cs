@@ -4,12 +4,12 @@ using Architecture.Domain.MessageBus.Outbox;
 
 namespace Architecture.Application.MessageBus.Outbox
 {
-    public class TransactionalEventBus : IEventBus
+    public class OutboxEventPublisher : IEventPublisher
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IIntegrationEventRepository _repository;
 
-        public TransactionalEventBus(IUnitOfWork unitOfWork, IIntegrationEventRepository repository)
+        public OutboxEventPublisher(IUnitOfWork unitOfWork, IIntegrationEventRepository repository)
         {
             _unitOfWork = unitOfWork;
             _repository = repository;

@@ -2,11 +2,11 @@ using System.Collections.Concurrent;
 
 namespace Architecture.Application.MessageBus.Outbox
 {
-    public sealed class TransactionalQueue
+    public sealed class OutboxQueue
     {
         private readonly ConcurrentQueue<Guid> _transactionIdQueue = new();
 
-        public TransactionalQueue(int slidingWindowSize)
+        public OutboxQueue(int slidingWindowSize)
         {
             SlidingWindowSize = slidingWindowSize;
         }

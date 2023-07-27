@@ -3,22 +3,22 @@ using Architecture.Application.MessageBus.Outbox;
 namespace Architecture.Tests.Application.MessageBus.Outbox
 {
     [Collection("Sequential")]
-    public class TransactionalQueueTests
+    public class OutboxQueueTests
     {
         [Fact]
         public async Task 高併發進行Enqueue的狀況下_應該有線程安全()
         {
             // Given
             var transactionIds = Enumerable.Range(1, 1000).Select(i => Guid.NewGuid()).ToList();
-            var transactionalQueue = new TransactionalQueue(30);
-            transactionalQueue.Clear();
+            var outboxQueue = new OutboxQueue(30);
+            outboxQueue.Clear();
 
             // When
-            var tasks = transactionIds.Select(id => Task.Run(() => transactionalQueue.Enqueue(id))).ToArray();
+            var tasks = transactionIds.Select(id => Task.Run(() => outboxQueue.Enqueue(id))).ToArray();
             await Task.WhenAll(tasks);
 
             // Then
-            transactionalQueue.TransactionIds.Should().BeEquivalentTo(transactionIds);
+            outboxQueue.TransactionIds.Should().BeEquivalentTo(transactionIds);
         }
 
         [Fact]
@@ -26,12 +26,12 @@ namespace Architecture.Tests.Application.MessageBus.Outbox
         {
             // Given
             var transactionIds = Enumerable.Range(1, 1000).Select(i => Guid.NewGuid()).ToList();
-            var transactionalQueue = new TransactionalQueue(30);
-            transactionalQueue.Clear();
-            transactionIds.ForEach(id => transactionalQueue.Enqueue(id));
+            var outboxQueue = new OutboxQueue(30);
+            outboxQueue.Clear();
+            transactionIds.ForEach(id => outboxQueue.Enqueue(id));
 
             // When
-            var tasks = transactionIds.Select(id => Task.Run(() => transactionalQueue.Dequeue())).ToArray();
+            var tasks = transactionIds.Select(id => Task.Run(() => outboxQueue.Dequeue())).ToArray();
             await Task.WhenAll(tasks);
             var dequeue = tasks.SelectMany(t => t.Result).ToList();
 
@@ -44,14 +44,14 @@ namespace Architecture.Tests.Application.MessageBus.Outbox
         {
             // Given
             var transactionIds = Enumerable.Range(1, 1000).Select(i => Guid.NewGuid()).ToList();
-            var transactionalQueue = new TransactionalQueue(30);
-            transactionalQueue.Clear();
+            var outboxQueue = new OutboxQueue(30);
+            outboxQueue.Clear();
 
             // When
             var tasks = transactionIds.Select(id => Task.Run(() =>
             {
-                transactionalQueue.Enqueue(id);
-                return transactionalQueue.Dequeue();
+                outboxQueue.Enqueue(id);
+                return outboxQueue.Dequeue();
             })).ToArray();
             await Task.WhenAll(tasks);
             var dequeue = tasks.SelectMany(t => t.Result).ToList();

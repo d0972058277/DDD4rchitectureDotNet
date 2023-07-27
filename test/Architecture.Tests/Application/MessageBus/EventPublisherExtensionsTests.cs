@@ -3,7 +3,7 @@ using Architecture.Domain.MessageBus;
 
 namespace Architecture.Tests.Application.MessageBus;
 
-public class EventBusExtensionsTests
+public class EventPublisherExtensionsTests
 {
     [Fact]
     public async Task 擴充方法應該使用IntegrationEvent_Create生成VO後用原本的PublishAsync進行發布()
@@ -11,7 +11,7 @@ public class EventBusExtensionsTests
         // Given
         var somethingIntegrationEvent = new SomethingIntegrationEvent();
         var integrationEvent = IntegrationEvent.Create(somethingIntegrationEvent);
-        var eventBus = new Mock<IEventBus>();
+        var eventBus = new Mock<IEventPublisher>();
 
         // When
         await eventBus.Object.PublishAsync(somethingIntegrationEvent, default);

@@ -2,7 +2,7 @@ using Architecture.Domain.MessageBus;
 
 namespace Architecture.Application.MessageBus
 {
-    public interface IEventBus
+    public interface IEventPublisher
     {
         Task PublishAsync(IntegrationEvent integrationEvent, CancellationToken cancellationToken = default);
     }

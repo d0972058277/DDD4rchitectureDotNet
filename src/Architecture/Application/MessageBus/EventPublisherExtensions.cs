@@ -2,9 +2,9 @@ using Architecture.Domain.MessageBus;
 
 namespace Architecture.Application.MessageBus;
 
-public static class EventBusExtensions
+public static class EventPublisherExtensions
 {
-    public static Task PublishAsync<T>(this IEventBus eventBus, T @event, CancellationToken cancellationToken = default) where T : IIntegrationEvent
+    public static Task PublishAsync<T>(this IEventPublisher eventBus, T @event, CancellationToken cancellationToken = default) where T : IIntegrationEvent
     {
         var integrationEvent = IntegrationEvent.Create(@event);
         return eventBus.PublishAsync(integrationEvent, cancellationToken);

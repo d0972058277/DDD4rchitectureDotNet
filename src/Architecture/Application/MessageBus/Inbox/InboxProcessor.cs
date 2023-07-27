@@ -1,34 +1,34 @@
-namespace Architecture.Application.MessageBus.Outbox;
+namespace Architecture.Application.MessageBus.Inbox;
 
-public class OutboxProcessor
+public class InboxProcessor
 {
-    private readonly OutboxQueue _queue;
+    private readonly InboxQueue _queue;
     private readonly IIntegrationEventRepository _repository;
 
-    public OutboxProcessor(OutboxQueue queue, IIntegrationEventRepository repository)
+    public InboxProcessor(InboxQueue queue, IIntegrationEventRepository repository)
     {
         _queue = queue;
         _repository = repository;
     }
 
-    public void Register(Guid transactionId)
+    public void Register(Guid integrationEventId)
     {
-        _queue.Enqueue(transactionId);
+        _queue.Enqueue(integrationEventId);
     }
 
     public async Task ProcessAsync(CancellationToken cancellationToken = default)
     {
-        var transactionIds = _queue.Dequeue();
-        var integrationEventEntries = await _repository.FindAsync(transactionIds, cancellationToken);
+        var integrationEventIds = _queue.Dequeue();
+        var integrationEventEntries = await _repository.FindAsync(integrationEventIds, cancellationToken);
 
         foreach (var integrationEventEntry in integrationEventEntries)
             integrationEventEntry.Progress();
         await _repository.SaveAsync(integrationEventEntries, cancellationToken);
 
-        // TODO: Publish integration event
+        // TODO: Consume integration event
 
         foreach (var integrationEventEntry in integrationEventEntries)
-            integrationEventEntry.Publish();
+            integrationEventEntry.Consume();
         await _repository.SaveAsync(integrationEventEntries, cancellationToken);
     }
 }

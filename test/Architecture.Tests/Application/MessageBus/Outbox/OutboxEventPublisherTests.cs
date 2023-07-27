@@ -5,7 +5,7 @@ using Architecture.Domain.MessageBus.Outbox;
 
 namespace Architecture.Tests.Application.MessageBus.Outbox
 {
-    public class TransactionalEventBusTests
+    public class OutboxEventPublisherTests
     {
         [Fact]
         public async Task 假如ITransactionalOutbox的UnitOfWork沒有活躍的Transaction_應該拋出InvalidOperationException的例外()
@@ -16,12 +16,12 @@ namespace Architecture.Tests.Application.MessageBus.Outbox
 
             var repository = new Mock<IIntegrationEventRepository>();
 
-            var transactionalEventBus = new TransactionalEventBus(unitOfWork.Object, repository.Object);
+            var outboxEventPublisher = new OutboxEventPublisher(unitOfWork.Object, repository.Object);
             var somethingIntegrationEvent = new SomethingIntegrationEvent();
             var integrationEvent = IntegrationEvent.Create(somethingIntegrationEvent);
 
             // When
-            var action = () => transactionalEventBus.PublishAsync(integrationEvent);
+            var action = () => outboxEventPublisher.PublishAsync(integrationEvent);
 
             // Then
             await action.Should().ThrowAsync<InvalidOperationException>();
@@ -38,12 +38,12 @@ namespace Architecture.Tests.Application.MessageBus.Outbox
 
             var repository = new Mock<IIntegrationEventRepository>();
 
-            var transactionalEventBus = new TransactionalEventBus(unitOfWork.Object, repository.Object);
+            var outboxEventPublisher = new OutboxEventPublisher(unitOfWork.Object, repository.Object);
             var somethingIntegrationEvent = new SomethingIntegrationEvent();
             var integrationEvent = IntegrationEvent.Create(somethingIntegrationEvent);
 
             // When
-            await transactionalEventBus.PublishAsync(integrationEvent);
+            await outboxEventPublisher.PublishAsync(integrationEvent);
 
             // Then
             repository.Verify(m => m.AddAsync(It.Is<IntegrationEventEntry>(e => e.Id == integrationEvent.Id && e.TransactionId == transactionId), default), Times.Once());
