@@ -10,10 +10,11 @@ public class InboxProcessor
     private readonly ILogger<InboxProcessor> _logger;
     private readonly Func<IServiceScope, IntegrationEvent, Task> _consumeIntegrationEventsFunc;
 
-    public InboxProcessor(IServiceProvider serviceProvider, ILogger<InboxProcessor> logger)
+    public InboxProcessor(IServiceProvider serviceProvider, ILogger<InboxProcessor> logger, Func<IServiceScope, IntegrationEvent, Task> consumeIntegrationEventsFunc)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
+        _consumeIntegrationEventsFunc = consumeIntegrationEventsFunc;
     }
 
     public async Task ProcessAsync(Guid integrationEventId, CancellationToken cancellationToken = default)
