@@ -1,4 +1,4 @@
-using Architecture.Domain.MessageBus.Outbox;
+using Architecture.Domain.MessageBus;
 
 namespace Architecture.Application.MessageBus;
 

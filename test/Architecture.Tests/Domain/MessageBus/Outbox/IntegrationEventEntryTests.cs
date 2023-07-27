@@ -1,3 +1,4 @@
+using Architecture.Domain.MessageBus;
 using Architecture.Domain.MessageBus.Outbox;
 
 namespace Architecture.Tests.Domain.MessageBus.Outbox;
@@ -20,12 +21,11 @@ public class IntegrationEventEntryTests
         integrationEventEntry.TypeName.Should().Be(integrationEvent.TypeName);
         integrationEventEntry.Message.Should().Be(integrationEvent.Message);
         integrationEventEntry.State.Should().Be(State.Raised);
-        integrationEventEntry.TimesSent.Should().Be(0);
         integrationEventEntry.TransactionId.Should().Be(transactionId);
     }
 
     [Fact]
-    public void 安派動作後_狀態應該是InProgress_且TimesSent要加1()
+    public void 安派動作後_狀態應該是InProgress()
     {
         // Given
         var integrationEvent = GetIntegrationEventEntry();
@@ -35,7 +35,6 @@ public class IntegrationEventEntryTests
 
         // Then
         integrationEvent.State.Should().Be(State.InProgress);
-        integrationEvent.TimesSent.Should().Be(1);
     }
 
     [Fact]

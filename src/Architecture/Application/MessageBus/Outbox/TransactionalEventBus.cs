@@ -1,4 +1,5 @@
 using Architecture.Application.UnitOfWork;
+using Architecture.Domain.MessageBus;
 using Architecture.Domain.MessageBus.Outbox;
 
 namespace Architecture.Application.MessageBus.Outbox

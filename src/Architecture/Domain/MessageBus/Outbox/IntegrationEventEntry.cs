@@ -2,13 +2,12 @@ namespace Architecture.Domain.MessageBus.Outbox;
 
 public class IntegrationEventEntry : AggregateRoot<Guid>, IIntegrationEvent
 {
-    private IntegrationEventEntry(Guid id, DateTime creationTimestamp, string typeName, string message, State state, int timesSent, Guid transactionId) : base(id)
+    private IntegrationEventEntry(Guid id, DateTime creationTimestamp, string typeName, string message, State state, Guid transactionId) : base(id)
     {
         CreationTimestamp = creationTimestamp;
         TypeName = typeName;
         Message = message;
         State = state;
-        TimesSent = timesSent;
         TransactionId = transactionId;
     }
 
@@ -20,8 +19,6 @@ public class IntegrationEventEntry : AggregateRoot<Guid>, IIntegrationEvent
 
     public State State { get; private set; }
 
-    public int TimesSent { get; private set; }
-
     public Guid TransactionId { get; private set; }
 
     public IntegrationEvent GetIntegrationEvent()
@@ -32,7 +29,6 @@ public class IntegrationEventEntry : AggregateRoot<Guid>, IIntegrationEvent
     public static IntegrationEventEntry Raise(IntegrationEvent integrationEvent, Guid transactionId)
     {
         var state = State.Raised;
-        var timesSent = 0;
 
         return new IntegrationEventEntry
         (
@@ -41,7 +37,6 @@ public class IntegrationEventEntry : AggregateRoot<Guid>, IIntegrationEvent
             integrationEvent.TypeName,
             integrationEvent.Message,
             state,
-            timesSent,
             transactionId
         );
     }
@@ -49,7 +44,6 @@ public class IntegrationEventEntry : AggregateRoot<Guid>, IIntegrationEvent
     public void Progress()
     {
         State = State.InProgress;
-        TimesSent++;
     }
 
     public void Publish()

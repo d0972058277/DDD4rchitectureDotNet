@@ -1,7 +1,7 @@
 using System.Text.Json;
 using CSharpFunctionalExtensions;
 
-namespace Architecture.Domain.MessageBus.Outbox;
+namespace Architecture.Domain.MessageBus;
 
 public class IntegrationEvent : ValueObject
 {

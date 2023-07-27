@@ -1,5 +1,5 @@
 using Architecture.Application.MessageBus;
-using Architecture.Domain.MessageBus.Outbox;
+using Architecture.Domain.MessageBus;
 
 namespace Architecture.Tests.Application.MessageBus;
 

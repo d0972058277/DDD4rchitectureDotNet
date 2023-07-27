@@ -1,5 +1,3 @@
-using Architecture.Domain;
-
 namespace Architecture.Tests.Domain
 {
     public partial class AggregateRootTests

@@ -1,6 +1,6 @@
-using Architecture.Domain.MessageBus.Outbox;
+using Architecture.Domain.MessageBus;
 
-namespace Architecture.Tests.Domain.MessageBus.Outbox;
+namespace Architecture.Tests.Domain.MessageBus;
 
 public class IntegrationEventTests
 {
