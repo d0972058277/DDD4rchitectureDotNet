@@ -1,34 +1,42 @@
+using Architecture.Domain.MessageBus;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+
 namespace Architecture.Application.MessageBus.Inbox;
 
 public class InboxProcessor
 {
-    private readonly InboxQueue _queue;
-    private readonly IIntegrationEventRepository _repository;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly ILogger<InboxProcessor> _logger;
+    private readonly Func<IServiceScope, IntegrationEvent, Task> _consumeIntegrationEventsFunc;
 
-    public InboxProcessor(InboxQueue queue, IIntegrationEventRepository repository)
+    public InboxProcessor(IServiceProvider serviceProvider, ILogger<InboxProcessor> logger)
     {
-        _queue = queue;
-        _repository = repository;
+        _serviceProvider = serviceProvider;
+        _logger = logger;
     }
 
-    public void Register(Guid integrationEventId)
+    public async Task ProcessAsync(Guid integrationEventId, CancellationToken cancellationToken = default)
     {
-        _queue.Enqueue(integrationEventId);
-    }
+        try
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var repository = scope.ServiceProvider.GetRequiredService<IIntegrationEventRepository>();
 
-    public async Task ProcessAsync(CancellationToken cancellationToken = default)
-    {
-        var integrationEventIds = _queue.Dequeue();
-        var integrationEventEntries = await _repository.FindAsync(integrationEventIds, cancellationToken);
+            var entry = await repository.FindAsync(integrationEventId, cancellationToken);
 
-        foreach (var integrationEventEntry in integrationEventEntries)
-            integrationEventEntry.Progress();
-        await _repository.SaveAsync(integrationEventEntries, cancellationToken);
+            entry.Progress();
+            await repository.SaveAsync(entry, cancellationToken);
 
-        // TODO: Consume integration event
+            var integrationEvent = entry.GetIntegrationEvent();
+            await _consumeIntegrationEventsFunc(scope, integrationEvent);
 
-        foreach (var integrationEventEntry in integrationEventEntries)
-            integrationEventEntry.Consume();
-        await _repository.SaveAsync(integrationEventEntries, cancellationToken);
+            entry.Consume();
+            await repository.SaveAsync(entry, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "InboxProcessor caught an exception.");
+        }
     }
 }

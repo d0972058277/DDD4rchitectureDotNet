@@ -1,34 +1,45 @@
+using Architecture.Domain.MessageBus;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+
 namespace Architecture.Application.MessageBus.Outbox;
 
 public class OutboxProcessor
 {
-    private readonly OutboxQueue _queue;
-    private readonly IIntegrationEventRepository _repository;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly ILogger<OutboxProcessor> _logger;
+    private readonly Func<IServiceScope, IEnumerable<IntegrationEvent>, Task> _publishIntegrationEventsFunc;
 
-    public OutboxProcessor(OutboxQueue queue, IIntegrationEventRepository repository)
+    public OutboxProcessor(IServiceProvider serviceProvider, ILogger<OutboxProcessor> logger, Func<IServiceScope, IEnumerable<IntegrationEvent>, Task> publishIntegrationEventsFunc)
     {
-        _queue = queue;
-        _repository = repository;
+        _serviceProvider = serviceProvider;
+        _logger = logger;
+        _publishIntegrationEventsFunc = publishIntegrationEventsFunc;
     }
 
-    public void Register(Guid transactionId)
+    public async Task ProcessAsync(Guid transactionId, CancellationToken cancellationToken = default)
     {
-        _queue.Enqueue(transactionId);
-    }
+        try
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var repository = scope.ServiceProvider.GetRequiredService<IIntegrationEventRepository>();
 
-    public async Task ProcessAsync(CancellationToken cancellationToken = default)
-    {
-        var transactionIds = _queue.Dequeue();
-        var integrationEventEntries = await _repository.FindAsync(transactionIds, cancellationToken);
+            var entries = await repository.FindAsync(transactionId, cancellationToken);
 
-        foreach (var integrationEventEntry in integrationEventEntries)
-            integrationEventEntry.Progress();
-        await _repository.SaveAsync(integrationEventEntries, cancellationToken);
+            foreach (var entry in entries)
+                entry.Progress();
+            await repository.SaveAsync(entries, cancellationToken);
 
-        // TODO: Publish integration event
+            var integrationEvents = entries.Select(e => e.GetIntegrationEvent()).ToList();
+            await _publishIntegrationEventsFunc(scope, integrationEvents);
 
-        foreach (var integrationEventEntry in integrationEventEntries)
-            integrationEventEntry.Publish();
-        await _repository.SaveAsync(integrationEventEntries, cancellationToken);
+            foreach (var entry in entries)
+                entry.Publish();
+            await repository.SaveAsync(entries, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "OutboxProcessor caught an exception.");
+        }
     }
 }

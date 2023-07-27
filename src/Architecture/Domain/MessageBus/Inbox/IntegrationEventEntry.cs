@@ -18,6 +18,11 @@ public class IntegrationEventEntry : AggregateRoot<Guid>
 
     public State State { get; private set; }
 
+    public IntegrationEvent GetIntegrationEvent()
+    {
+        return IntegrationEvent.Create(Id, CreationTimestamp, TypeName, Message);
+    }
+
     public static IntegrationEventEntry Subscribe(IntegrationEvent integrationEvent)
     {
         var state = State.Subscribed;

@@ -1,6 +1,6 @@
-namespace Architecture.Tests.Application.MessageBus.Outbox;
+namespace Architecture.Tests.Application.MessageBus.Inbox;
 
-public class OutboxProcessorTests
+public class InboxProcessorTests
 {
     [Fact(Skip = "未實作")]
     public void TestName()
