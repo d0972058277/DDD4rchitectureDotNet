@@ -4,6 +4,5 @@ public enum State
 {
     NotPublished = 0,
     InProgress = 1,
-    Published = 2,
-    PublishedFailed = 3
+    Published = 2
 }
