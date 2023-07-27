@@ -4,12 +4,9 @@ namespace Architecture.Application.MessageBus.Outbox
 {
     public sealed class TransactionalQueue
     {
-        private static readonly object lockObject = new();
-        private static TransactionalQueue? _instance;
-
         private readonly ConcurrentQueue<Guid> _transactionIdQueue = new();
 
-        private TransactionalQueue(int slidingWindowSize)
+        public TransactionalQueue(int slidingWindowSize)
         {
             SlidingWindowSize = slidingWindowSize;
         }
@@ -17,22 +14,6 @@ namespace Architecture.Application.MessageBus.Outbox
         public int SlidingWindowSize { get; }
 
         public IReadOnlyCollection<Guid> TransactionIds => _transactionIdQueue;
-
-        public static TransactionalQueue Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    lock (lockObject)
-                    {
-                        _instance ??= new TransactionalQueue(30);
-                    }
-                }
-
-                return _instance;
-            }
-        }
 
         public void Enqueue(Guid transactionId)
         {

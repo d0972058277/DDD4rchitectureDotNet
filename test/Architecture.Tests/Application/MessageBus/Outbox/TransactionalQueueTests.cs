@@ -10,7 +10,7 @@ namespace Architecture.Tests.Application.MessageBus.Outbox
         {
             // Given
             var transactionIds = Enumerable.Range(1, 1000).Select(i => Guid.NewGuid()).ToList();
-            var transactionalQueue = TransactionalQueue.Instance;
+            var transactionalQueue = new TransactionalQueue(30);
             transactionalQueue.Clear();
 
             // When
@@ -26,7 +26,7 @@ namespace Architecture.Tests.Application.MessageBus.Outbox
         {
             // Given
             var transactionIds = Enumerable.Range(1, 1000).Select(i => Guid.NewGuid()).ToList();
-            var transactionalQueue = TransactionalQueue.Instance;
+            var transactionalQueue = new TransactionalQueue(30);
             transactionalQueue.Clear();
             transactionIds.ForEach(id => transactionalQueue.Enqueue(id));
 
@@ -44,7 +44,7 @@ namespace Architecture.Tests.Application.MessageBus.Outbox
         {
             // Given
             var transactionIds = Enumerable.Range(1, 1000).Select(i => Guid.NewGuid()).ToList();
-            var transactionalQueue = TransactionalQueue.Instance;
+            var transactionalQueue = new TransactionalQueue(30);
             transactionalQueue.Clear();
 
             // When

@@ -1,7 +1,9 @@
+using Architecture.Domain.MessageBus.Outbox;
+
 namespace Architecture.Application.MessageBus
 {
     public interface IEventBus
     {
-        Task PublishAsync<TIntegrationEvent>(TIntegrationEvent integrationEvent, CancellationToken cancellationToken = default) where TIntegrationEvent : IntegrationEvent;
+        Task PublishAsync(IntegrationEvent integrationEvent, CancellationToken cancellationToken = default);
     }
 }
