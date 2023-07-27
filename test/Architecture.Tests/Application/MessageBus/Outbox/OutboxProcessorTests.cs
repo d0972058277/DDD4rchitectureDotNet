@@ -54,7 +54,7 @@ public class OutboxProcessorTests
         var transactionId = Guid.NewGuid();
         var somethingIntegrationEvent = new SomethingIntegrationEvent();
         var integrationEvent = IntegrationEvent.Create(somethingIntegrationEvent);
-        var integrationEventEntry = IntegrationEventEntry.Create(integrationEvent, transactionId);
+        var integrationEventEntry = IntegrationEventEntry.Raise(integrationEvent, transactionId);
         return integrationEventEntry;
     }
 }

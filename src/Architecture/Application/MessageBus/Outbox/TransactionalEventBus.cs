@@ -20,7 +20,7 @@ namespace Architecture.Application.MessageBus.Outbox
                 throw new InvalidOperationException("IEventBus 的實作類 TransactionalEventBus 應該要在 IUnitOfWork 有活躍的 Transaction 才可進行整合事件發佈");
 
             var transactionId = _unitOfWork.TransactionId!.Value;
-            var integrationEventEntry = IntegrationEventEntry.Create(integrationEvent, transactionId);
+            var integrationEventEntry = IntegrationEventEntry.Raise(integrationEvent, transactionId);
             return _repository.AddAsync(integrationEventEntry, cancellationToken);
         }
     }

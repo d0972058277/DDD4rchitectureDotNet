@@ -29,9 +29,9 @@ public class IntegrationEventEntry : AggregateRoot<Guid>, IIntegrationEvent
         return IntegrationEvent.Create(Id, CreationTimestamp, TypeName, Message);
     }
 
-    public static IntegrationEventEntry Create(IntegrationEvent integrationEvent, Guid transactionId)
+    public static IntegrationEventEntry Raise(IntegrationEvent integrationEvent, Guid transactionId)
     {
-        var state = State.NotPublished;
+        var state = State.Raised;
         var timesSent = 0;
 
         return new IntegrationEventEntry

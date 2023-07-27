@@ -2,7 +2,7 @@ namespace Architecture.Domain.MessageBus.Outbox;
 
 public enum State
 {
-    NotPublished = 0,
+    Raised = 0,
     InProgress = 1,
     Published = 2
 }

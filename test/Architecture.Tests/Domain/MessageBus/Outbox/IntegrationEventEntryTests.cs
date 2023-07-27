@@ -12,14 +12,14 @@ public class IntegrationEventEntryTests
         var transactionId = Guid.NewGuid();
 
         // When
-        var integrationEventEntry = IntegrationEventEntry.Create(integrationEvent, transactionId);
+        var integrationEventEntry = IntegrationEventEntry.Raise(integrationEvent, transactionId);
 
         // Then
         integrationEventEntry.Id.Should().Be(integrationEvent.Id);
         integrationEventEntry.CreationTimestamp.Should().Be(integrationEvent.CreationTimestamp);
         integrationEventEntry.TypeName.Should().Be(integrationEvent.TypeName);
         integrationEventEntry.Message.Should().Be(integrationEvent.Message);
-        integrationEventEntry.State.Should().Be(State.NotPublished);
+        integrationEventEntry.State.Should().Be(State.Raised);
         integrationEventEntry.TimesSent.Should().Be(0);
         integrationEventEntry.TransactionId.Should().Be(transactionId);
     }
@@ -63,7 +63,7 @@ public class IntegrationEventEntryTests
     {
         var integrationEvent = GetIntegrationEvent();
         var transactionId = Guid.NewGuid();
-        var integrationEventEntry = IntegrationEventEntry.Create(integrationEvent, transactionId);
+        var integrationEventEntry = IntegrationEventEntry.Raise(integrationEvent, transactionId);
         return integrationEventEntry;
     }
 }
