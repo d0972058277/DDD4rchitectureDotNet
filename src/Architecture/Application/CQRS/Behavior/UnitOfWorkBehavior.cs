@@ -1,3 +1,4 @@
+using Architecture.Application.EventBus;
 using Architecture.Application.UnitOfWork;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -7,11 +8,13 @@ namespace Architecture.Application.CQRS.Behavior
     public class UnitOfWorkBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IOutboxProcessor _outboxProcessor;
         private readonly ILogger<UnitOfWorkBehavior<TRequest, TResponse>> _logger;
 
-        public UnitOfWorkBehavior(IUnitOfWork unitOfWork, ILogger<UnitOfWorkBehavior<TRequest, TResponse>> logger)
+        public UnitOfWorkBehavior(IUnitOfWork unitOfWork, IOutboxProcessor outboxProcessor, ILogger<UnitOfWorkBehavior<TRequest, TResponse>> logger)
         {
             _unitOfWork = unitOfWork;
+            _outboxProcessor = outboxProcessor;
             _logger = logger;
         }
 
@@ -61,6 +64,9 @@ namespace Architecture.Application.CQRS.Behavior
             sw.Stop();
 
             _logger.LogInformation("----- Commit transaction {TransactionId} for {CommandName} costs {ElapsedMilliseconds}ms", transactionId, typeName, sw.ElapsedMilliseconds);
+
+            _ = _outboxProcessor.ProcessAsync(transactionId, cancellationToken);
+            _logger.LogInformation("+++++ Outbox process integration events for {TransactionId}", transactionId);
 
             return response;
         }

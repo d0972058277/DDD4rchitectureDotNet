@@ -4,5 +4,5 @@ namespace Architecture.Application.EventBus;
 
 public interface IEventOutbox
 {
-    Task SendAsync(IntegrationEvent integrationEvent, CancellationToken cancellationToken = default);
+    Task SendAsync<T>(T @event, CancellationToken cancellationToken = default) where T : IIntegrationEvent;
 }

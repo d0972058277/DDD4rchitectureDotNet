@@ -2,10 +2,12 @@ using System.Reflection;
 using Architecture.Application;
 using Architecture.Application.CQRS;
 using Architecture.Application.CQRS.Behavior;
+using Architecture.Application.EventBus;
+using Architecture.Application.EventBus.Outbox;
 using Architecture.Application.UnitOfWork;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Project.Infrastructure;
 
@@ -21,7 +23,7 @@ public static class ServiceCollectionExtensions
         services.AddAllTypes<IRepository>(ServiceLifetime.Transient);
 
         services.AddTransient<IEventMediator, EventMediator>();
-        services.AddTransient<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddMediatR(cfg =>
         {
@@ -32,6 +34,9 @@ public static class ServiceCollectionExtensions
 
         services.AddDbContext<ProjectDbContext>(transationalDbContextOptionsAction);
         services.AddDbContext<ReadOnlyProjectDbContext>(readOnlyDbContextOptionsAction);
+
+        services.AddTransient<IEventOutbox, EventOutbox>();
+        services.TryAddSingleton<IOutboxProcessor, EmptyOutboxProcessor>();
 
         return services;
     }

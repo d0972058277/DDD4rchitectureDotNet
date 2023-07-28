@@ -12,10 +12,10 @@ public class OutboxProcessorTests
     public async Task 應該會選取TransactionId對應的Events操作Progress_接著執行發佈Events的Func_最後操作Publish()
     {
         // Given
-        var integrationEventEntry = GetIntegrationEventEntry();
-        var integrationEventEntries = new List<IntegrationEventEntry> { integrationEventEntry };
-        var integrationEvents = integrationEventEntries.Select(e => e.GetIntegrationEvent()).ToList();
-        var transactionId = integrationEventEntry.TransactionId;
+        var entry = GetIntegrationEventEntry();
+        var entries = new List<IntegrationEventEntry> { entry };
+        var payloads = entries.Select(e => e.GetPayload()).ToList();
+        var transactionId = entry.TransactionId;
 
         var serviceProvider = new Mock<IServiceProvider>();
         var serviceScopeFactory = new Mock<IServiceScopeFactory>();
@@ -27,10 +27,10 @@ public class OutboxProcessorTests
 
         var repository = new Mock<IIntegrationEventRepository>();
         serviceProvider.Setup(m => m.GetService(typeof(IIntegrationEventRepository))).Returns(repository.Object);
-        repository.Setup(m => m.FindAsync(transactionId, default)).ReturnsAsync(integrationEventEntries);
+        repository.Setup(m => m.FindAsync(transactionId, default)).ReturnsAsync(entries);
 
         var logger = new Mock<ILogger<OutboxProcessor>>();
-        var func = new Mock<Func<IServiceProvider, IEnumerable<IntegrationEvent>, Task>>();
+        var func = new Mock<Func<IServiceProvider, IEnumerable<Payload>, Task>>();
 
         var outboxProcessor = new OutboxProcessor(serviceProvider.Object, logger.Object, func.Object);
 
@@ -39,18 +39,17 @@ public class OutboxProcessorTests
 
         // Then
         repository.Verify(m => m.FindAsync(transactionId, default), Times.Once());
-        repository.Verify(m => m.SaveAsync(integrationEventEntries, default), Times.Exactly(2));
-        func.Verify(m => m(serviceProvider.Object, It.Is<IEnumerable<IntegrationEvent>>(l => l.SequenceEqual(integrationEvents))), Times.Once());
+        repository.Verify(m => m.SaveAsync(entries, default), Times.Exactly(2));
+        func.Verify(m => m(serviceProvider.Object, It.Is<IEnumerable<Payload>>(l => l.SequenceEqual(payloads))), Times.Once());
     }
 
     [Fact]
     public async Task 如果FindAsync拋出例外_應該被記錄()
     {
         // Given
-        var integrationEventEntry = GetIntegrationEventEntry();
-        var integrationEventEntries = new List<IntegrationEventEntry> { integrationEventEntry };
-        var integrationEvents = integrationEventEntries.Select(e => e.GetIntegrationEvent()).ToList();
-        var transactionId = integrationEventEntry.TransactionId;
+        var entry = GetIntegrationEventEntry();
+        var entries = new List<IntegrationEventEntry> { entry };
+        var transactionId = entry.TransactionId;
 
         var serviceProvider = new Mock<IServiceProvider>();
         var serviceScopeFactory = new Mock<IServiceScopeFactory>();
@@ -65,7 +64,7 @@ public class OutboxProcessorTests
         repository.Setup(m => m.FindAsync(It.Is<Guid>(id => id == transactionId), default)).ThrowsAsync(new Exception());
 
         var logger = new Mock<ILogger<OutboxProcessor>>();
-        var func = new Mock<Func<IServiceProvider, IEnumerable<IntegrationEvent>, Task>>();
+        var func = new Mock<Func<IServiceProvider, IEnumerable<Payload>, Task>>();
 
         var outboxProcessor = new OutboxProcessor(serviceProvider.Object, logger.Object, func.Object);
 
@@ -86,10 +85,9 @@ public class OutboxProcessorTests
     public async Task 如果第一次SaveAsync拋出例外_應該被記錄()
     {
         // Given
-        var integrationEventEntry = GetIntegrationEventEntry();
-        var integrationEventEntries = new List<IntegrationEventEntry> { integrationEventEntry };
-        var integrationEvents = integrationEventEntries.Select(e => e.GetIntegrationEvent()).ToList();
-        var transactionId = integrationEventEntry.TransactionId;
+        var entry = GetIntegrationEventEntry();
+        var entries = new List<IntegrationEventEntry> { entry };
+        var transactionId = entry.TransactionId;
 
         var serviceProvider = new Mock<IServiceProvider>();
         var serviceScopeFactory = new Mock<IServiceScopeFactory>();
@@ -101,11 +99,11 @@ public class OutboxProcessorTests
 
         var repository = new Mock<IIntegrationEventRepository>();
         serviceProvider.Setup(m => m.GetService(typeof(IIntegrationEventRepository))).Returns(repository.Object);
-        repository.Setup(m => m.FindAsync(transactionId, default)).ReturnsAsync(integrationEventEntries);
-        repository.Setup(m => m.SaveAsync(integrationEventEntries, default)).ThrowsAsync(new Exception());
+        repository.Setup(m => m.FindAsync(transactionId, default)).ReturnsAsync(entries);
+        repository.Setup(m => m.SaveAsync(entries, default)).ThrowsAsync(new Exception());
 
         var logger = new Mock<ILogger<OutboxProcessor>>();
-        var func = new Mock<Func<IServiceProvider, IEnumerable<IntegrationEvent>, Task>>();
+        var func = new Mock<Func<IServiceProvider, IEnumerable<Payload>, Task>>();
 
         var outboxProcessor = new OutboxProcessor(serviceProvider.Object, logger.Object, func.Object);
 
@@ -113,7 +111,7 @@ public class OutboxProcessorTests
         await outboxProcessor.ProcessAsync(transactionId, default);
 
         // Then
-        repository.Verify(m => m.SaveAsync(integrationEventEntries, default), Times.Once());
+        repository.Verify(m => m.SaveAsync(entries, default), Times.Once());
         logger.Verify(logger => logger.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
@@ -127,10 +125,10 @@ public class OutboxProcessorTests
     public async Task 如果執行發佈Events的Func拋出例外_應該被記錄()
     {
         // Given
-        var integrationEventEntry = GetIntegrationEventEntry();
-        var integrationEventEntries = new List<IntegrationEventEntry> { integrationEventEntry };
-        var integrationEvents = integrationEventEntries.Select(e => e.GetIntegrationEvent()).ToList();
-        var transactionId = integrationEventEntry.TransactionId;
+        var entry = GetIntegrationEventEntry();
+        var entries = new List<IntegrationEventEntry> { entry };
+        var payloads = entries.Select(e => e.GetPayload()).ToList();
+        var transactionId = entry.TransactionId;
 
         var serviceProvider = new Mock<IServiceProvider>();
         var serviceScopeFactory = new Mock<IServiceScopeFactory>();
@@ -142,11 +140,11 @@ public class OutboxProcessorTests
 
         var repository = new Mock<IIntegrationEventRepository>();
         serviceProvider.Setup(m => m.GetService(typeof(IIntegrationEventRepository))).Returns(repository.Object);
-        repository.Setup(m => m.FindAsync(transactionId, default)).ReturnsAsync(integrationEventEntries);
+        repository.Setup(m => m.FindAsync(transactionId, default)).ReturnsAsync(entries);
 
         var logger = new Mock<ILogger<OutboxProcessor>>();
-        var func = new Mock<Func<IServiceProvider, IEnumerable<IntegrationEvent>, Task>>();
-        func.Setup(m => m(serviceProvider.Object, integrationEvents)).ThrowsAsync(new Exception());
+        var func = new Mock<Func<IServiceProvider, IEnumerable<Payload>, Task>>();
+        func.Setup(m => m(serviceProvider.Object, payloads)).ThrowsAsync(new Exception());
 
         var outboxProcessor = new OutboxProcessor(serviceProvider.Object, logger.Object, func.Object);
 
@@ -167,10 +165,9 @@ public class OutboxProcessorTests
     public async Task 如果第二次SaveAsync拋出例外_應該被記錄()
     {
         // Given
-        var integrationEventEntry = GetIntegrationEventEntry();
-        var integrationEventEntries = new List<IntegrationEventEntry> { integrationEventEntry };
-        var integrationEvents = integrationEventEntries.Select(e => e.GetIntegrationEvent()).ToList();
-        var transactionId = integrationEventEntry.TransactionId;
+        var entry = GetIntegrationEventEntry();
+        var entries = new List<IntegrationEventEntry> { entry };
+        var transactionId = entry.TransactionId;
 
         var serviceProvider = new Mock<IServiceProvider>();
         var serviceScopeFactory = new Mock<IServiceScopeFactory>();
@@ -182,13 +179,13 @@ public class OutboxProcessorTests
 
         var repository = new Mock<IIntegrationEventRepository>();
         serviceProvider.Setup(m => m.GetService(typeof(IIntegrationEventRepository))).Returns(repository.Object);
-        repository.Setup(m => m.FindAsync(transactionId, default)).ReturnsAsync(integrationEventEntries);
-        repository.SetupSequence(m => m.SaveAsync(integrationEventEntries, default))
+        repository.Setup(m => m.FindAsync(transactionId, default)).ReturnsAsync(entries);
+        repository.SetupSequence(m => m.SaveAsync(entries, default))
             .Returns(Task.CompletedTask)
             .ThrowsAsync(new Exception());
 
         var logger = new Mock<ILogger<OutboxProcessor>>();
-        var func = new Mock<Func<IServiceProvider, IEnumerable<IntegrationEvent>, Task>>();
+        var func = new Mock<Func<IServiceProvider, IEnumerable<Payload>, Task>>();
 
         var outboxProcessor = new OutboxProcessor(serviceProvider.Object, logger.Object, func.Object);
 
@@ -196,7 +193,7 @@ public class OutboxProcessorTests
         await outboxProcessor.ProcessAsync(transactionId, default);
 
         // Then
-        repository.Verify(m => m.SaveAsync(integrationEventEntries, default), Times.Exactly(2));
+        repository.Verify(m => m.SaveAsync(entries, default), Times.Exactly(2));
         logger.Verify(logger => logger.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
@@ -206,18 +203,18 @@ public class OutboxProcessorTests
             Times.Once);
     }
 
-    private static IntegrationEvent GetIntegrationEvent()
+    private static Payload GetPayload()
     {
         var somethingIntegrationEvent = new SomethingIntegrationEvent();
-        var integrationEvent = IntegrationEvent.Create(somethingIntegrationEvent);
-        return integrationEvent;
+        var payload = Payload.Serialize(somethingIntegrationEvent);
+        return payload;
     }
 
     private static IntegrationEventEntry GetIntegrationEventEntry()
     {
-        var integrationEvent = GetIntegrationEvent();
+        var payload = GetPayload();
         var transactionId = Guid.NewGuid();
-        var integrationEventEntry = IntegrationEventEntry.Raise(integrationEvent, transactionId);
-        return integrationEventEntry;
+        var entry = IntegrationEventEntry.Raise(payload, transactionId);
+        return entry;
     }
 }

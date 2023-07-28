@@ -1,7 +1,9 @@
 using Architecture;
 using Architecture.Application.CQRS;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using Project.Application.SomethingContext.Commands.CreateAggregate;
+using Project.Application.SomethingContext.IntegrationEvents;
 using Project.Application.SomethingContext.Queries.GetSomething;
 using Project.Domain.SomethingContext.Models;
 using Project.Infrastructure;
@@ -12,11 +14,13 @@ namespace Project.Integration.Tests.UseCase.SomethingContext;
 public class CreateAggregateUseCase
 {
     private readonly ProjectDbContext _dbContext;
+    private readonly ReadOnlyProjectDbContext _readOnlyDbContext;
     private readonly IEventMediator _eventMediator;
 
-    public CreateAggregateUseCase(ProjectDbContext dbContext, IEventMediator eventMediator)
+    public CreateAggregateUseCase(ProjectDbContext dbContext, ReadOnlyProjectDbContext readOnlyDbContext, IEventMediator eventMediator)
     {
         _dbContext = dbContext;
+        _readOnlyDbContext = readOnlyDbContext;
         _eventMediator = eventMediator;
     }
 
@@ -43,6 +47,11 @@ public class CreateAggregateUseCase
         something.ValueObjects.Select(o => o.Number).Should().BeEquivalentTo(valueObjects.Select(o => o.Number));
         something.ValueObjects.Select(o => o.Boolean).Should().BeEquivalentTo(valueObjects.Select(o => o.Boolean));
         something.ValueObjects.Select(o => o.DateTime).Should().BeEquivalentTo(valueObjects.Select(o => o.DateTime));
+
+        var integrationEventEntry = await _readOnlyDbContext.Outbox.SingleAsync();
+        integrationEventEntry.GetPayload().Deserialize().As<AggregateCreatedIntegrationEvent>().SomethingAggregateId.Should().Be(something.Id);
+
+        // TODO: 驗證事件發佈出去
     }
 
     private static List<SomethingValueObject> GetSomethingValueObjects()

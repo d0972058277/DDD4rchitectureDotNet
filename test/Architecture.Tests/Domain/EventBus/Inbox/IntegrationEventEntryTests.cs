@@ -9,57 +9,57 @@ public class IntegrationEventEntryTests
     public void 應該成功收取IntegrationEventEntry()
     {
         // Given
-        var integrationEvent = GetIntegrationEvent();
+        var payload = GetPayload();
 
         // When
-        var integrationEventEntry = IntegrationEventEntry.Receive(integrationEvent);
+        var entry = IntegrationEventEntry.Receive(payload);
 
         // Then
-        integrationEventEntry.Id.Should().Be(integrationEvent.Id);
-        integrationEventEntry.CreationTimestamp.Should().Be(integrationEvent.CreationTimestamp);
-        integrationEventEntry.TypeName.Should().Be(integrationEvent.TypeName);
-        integrationEventEntry.Message.Should().Be(integrationEvent.Message);
-        integrationEventEntry.State.Should().Be(State.Received);
+        entry.Id.Should().Be(payload.Id);
+        entry.CreationTimestamp.Should().Be(payload.CreationTimestamp);
+        entry.TypeName.Should().Be(payload.TypeName);
+        entry.Content.Should().Be(payload.Content);
+        entry.State.Should().Be(State.Received);
     }
 
     [Fact]
     public void 安排動作後_狀態應該是InProgress()
     {
         // Given
-        var integrationEvent = GetIntegrationEventEntry();
+        var entry = GetIntegrationEventEntry();
 
         // When
-        integrationEvent.Progress();
+        entry.Progress();
 
         // Then
-        integrationEvent.State.Should().Be(State.InProgress);
+        entry.State.Should().Be(State.InProgress);
     }
 
     [Fact]
     public void 處理後_狀態應該要是Handled()
     {
         // Given
-        var integrationEvent = GetIntegrationEventEntry();
-        integrationEvent.Progress();
+        var entry = GetIntegrationEventEntry();
+        entry.Progress();
 
         // When
-        integrationEvent.Handle();
+        entry.Handle();
 
         // Then
-        integrationEvent.State.Should().Be(State.Handled);
+        entry.State.Should().Be(State.Handled);
     }
 
-    private static IntegrationEvent GetIntegrationEvent()
+    private static Payload GetPayload()
     {
         var somethingIntegrationEvent = new SomethingIntegrationEvent();
-        var integrationEvent = IntegrationEvent.Create(somethingIntegrationEvent);
-        return integrationEvent;
+        var payload = Payload.Serialize(somethingIntegrationEvent);
+        return payload;
     }
 
     private static IntegrationEventEntry GetIntegrationEventEntry()
     {
-        var integrationEvent = GetIntegrationEvent();
-        var integrationEventEntry = IntegrationEventEntry.Receive(integrationEvent);
-        return integrationEventEntry;
+        var payload = GetPayload();
+        var entry = IntegrationEventEntry.Receive(payload);
+        return entry;
     }
 }
