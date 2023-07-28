@@ -18,7 +18,7 @@ namespace Architecture.Application.EventBus.Outbox
         public Task SendAsync<T>(T @event, CancellationToken cancellationToken = default) where T : IIntegrationEvent
         {
             if (!_unitOfWork.HasActiveTransaction)
-                throw new InvalidOperationException("IEventBus 的實作類 TransactionalEventBus 應該要在 IUnitOfWork 有活躍的 Transaction 才可進行整合事件發佈");
+                throw new InvalidOperationException("IEventBus 的實作類 EventOutbox 應該要在 IUnitOfWork 有活躍的 Transaction 才可進行整合事件發佈");
 
             var transactionId = _unitOfWork.TransactionId!.Value;
             var payload = Payload.Serialize(@event);
