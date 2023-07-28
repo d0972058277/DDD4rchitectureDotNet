@@ -26,7 +26,8 @@ public class OutboxProcessor : IOutboxProcessor
 
             var entries = await repository.FindAsync(transactionId, cancellationToken);
 
-            // TODO: 處理 !IntegrationEventEntries.Any() 不做事
+            if (!entries.Any())
+                return;
 
             foreach (var entry in entries)
                 entry.Progress();

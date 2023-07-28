@@ -21,7 +21,6 @@ namespace Architecture.Tests.Application.CQRS.Behavior
                 unitOfWork.Setup(m => m.TransactionId).Returns(transactionId);
                 unitOfWork.Setup(m => m.HasActiveTransaction).Returns(true);
             });
-            var outboxProcessor = new Mock<IOutboxProcessor>();
             var logger = new Mock<ILogger<UnitOfWorkBehavior<SomethingCommand, Unit>>>();
 
             var services = new ServiceCollection();
@@ -29,7 +28,6 @@ namespace Architecture.Tests.Application.CQRS.Behavior
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(UnitOfWorkBehavior<,>));
             services.AddTransient(typeof(IUnitOfWork), sp => unitOfWork.Object);
             services.AddTransient(typeof(ILogger<UnitOfWorkBehavior<SomethingCommand, Unit>>), sp => logger.Object);
-            services.AddTransient(typeof(IOutboxProcessor), sp => outboxProcessor.Object);
             using var provider = services.BuildServiceProvider();
             var mediator = provider.GetRequiredService<IMediator>();
 
@@ -41,7 +39,6 @@ namespace Architecture.Tests.Application.CQRS.Behavior
             // Then
             unitOfWork.Verify(m => m.BeginTransactionAsync(default), Times.Once());
             unitOfWork.Verify(m => m.CommitAsync(default), Times.Once());
-            outboxProcessor.Verify(m => m.ProcessAsync(transactionId, default), Times.Once());
             logger.Verify(logger => logger.Log(
                 It.Is<LogLevel>(logLevel => logLevel == LogLevel.Information),
                 It.Is<EventId>(eventId => eventId.Id == 0),
@@ -65,7 +62,6 @@ namespace Architecture.Tests.Application.CQRS.Behavior
             var unitOfWork = new Mock<IUnitOfWork>();
             unitOfWork.Setup(m => m.TransactionId).Returns(Guid.Empty);
             unitOfWork.Setup(m => m.HasActiveTransaction).Returns(true);
-            var outboxProcessor = new Mock<IOutboxProcessor>();
             var logger = new Mock<ILogger<UnitOfWorkBehavior<SomethingCommand, Unit>>>();
 
             var services = new ServiceCollection();
@@ -73,7 +69,6 @@ namespace Architecture.Tests.Application.CQRS.Behavior
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(UnitOfWorkBehavior<,>));
             services.AddTransient(typeof(IUnitOfWork), sp => unitOfWork.Object);
             services.AddTransient(typeof(ILogger<UnitOfWorkBehavior<SomethingCommand, Unit>>), sp => logger.Object);
-            services.AddTransient(typeof(IOutboxProcessor), sp => outboxProcessor.Object);
             using var provider = services.BuildServiceProvider();
             var mediator = provider.GetRequiredService<IMediator>();
 
@@ -100,7 +95,6 @@ namespace Architecture.Tests.Application.CQRS.Behavior
             var exception = new Exception();
             var unitOfWork = new Mock<IUnitOfWork>();
             unitOfWork.Setup(m => m.BeginTransactionAsync(It.IsAny<CancellationToken>())).ThrowsAsync(exception);
-            var outboxProcessor = new Mock<IOutboxProcessor>();
             var logger = new Mock<ILogger<UnitOfWorkBehavior<SomethingCommand, Unit>>>();
 
             var services = new ServiceCollection();
@@ -108,7 +102,6 @@ namespace Architecture.Tests.Application.CQRS.Behavior
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(UnitOfWorkBehavior<,>));
             services.AddTransient(typeof(IUnitOfWork), sp => unitOfWork.Object);
             services.AddTransient(typeof(ILogger<UnitOfWorkBehavior<SomethingCommand, Unit>>), sp => logger.Object);
-            services.AddTransient(typeof(IOutboxProcessor), sp => outboxProcessor.Object);
             using var provider = services.BuildServiceProvider();
             var mediator = provider.GetRequiredService<IMediator>();
 
@@ -135,7 +128,6 @@ namespace Architecture.Tests.Application.CQRS.Behavior
             var exception = new Exception();
             var unitOfWork = new Mock<IUnitOfWork>();
             unitOfWork.Setup(m => m.BeginTransactionAsync(It.IsAny<CancellationToken>())).ThrowsAsync(exception);
-            var outboxProcessor = new Mock<IOutboxProcessor>();
             var logger = new Mock<ILogger<UnitOfWorkBehavior<SomethingCommand, Unit>>>();
 
             var services = new ServiceCollection();
@@ -143,7 +135,6 @@ namespace Architecture.Tests.Application.CQRS.Behavior
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(UnitOfWorkBehavior<,>));
             services.AddTransient(typeof(IUnitOfWork), sp => unitOfWork.Object);
             services.AddTransient(typeof(ILogger<UnitOfWorkBehavior<SomethingCommand, Unit>>), sp => logger.Object);
-            services.AddTransient(typeof(IOutboxProcessor), sp => outboxProcessor.Object);
             using var provider = services.BuildServiceProvider();
             var mediator = provider.GetRequiredService<IMediator>();
 
