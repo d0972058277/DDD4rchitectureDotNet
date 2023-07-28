@@ -8,9 +8,9 @@ public class OutboxProcessor
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<OutboxProcessor> _logger;
-    private readonly Func<IServiceScope, IEnumerable<IntegrationEvent>, Task> _publishIntegrationEventsFunc;
+    private readonly Func<IServiceProvider, IEnumerable<IntegrationEvent>, Task> _publishIntegrationEventsFunc;
 
-    public OutboxProcessor(IServiceProvider serviceProvider, ILogger<OutboxProcessor> logger, Func<IServiceScope, IEnumerable<IntegrationEvent>, Task> publishIntegrationEventsFunc)
+    public OutboxProcessor(IServiceProvider serviceProvider, ILogger<OutboxProcessor> logger, Func<IServiceProvider, IEnumerable<IntegrationEvent>, Task> publishIntegrationEventsFunc)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
@@ -31,7 +31,7 @@ public class OutboxProcessor
             await repository.SaveAsync(entries, cancellationToken);
 
             var integrationEvents = entries.Select(e => e.GetIntegrationEvent()).ToList();
-            await _publishIntegrationEventsFunc(scope, integrationEvents);
+            await _publishIntegrationEventsFunc(scope.ServiceProvider, integrationEvents);
 
             foreach (var entry in entries)
                 entry.Publish();

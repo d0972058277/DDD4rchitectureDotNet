@@ -8,7 +8,7 @@ namespace Architecture.Tests.Application.MessageBus.Outbox
     public class OutboxEventPublisherTests
     {
         [Fact]
-        public async Task 假如ITransactionalOutbox的UnitOfWork沒有活躍的Transaction_應該拋出InvalidOperationException的例外()
+        public async Task 假如OutboxEventPublisher的UnitOfWork沒有活躍的Transaction_應該拋出InvalidOperationException的例外()
         {
             // Given
             var unitOfWork = new Mock<IUnitOfWork>();
@@ -28,7 +28,7 @@ namespace Architecture.Tests.Application.MessageBus.Outbox
         }
 
         [Fact]
-        public async Task 假如ITransactionalOutbox的UnitOfWork有活躍的Transaction_應該順利執行ITransactionalOutbox的SaveAsync行為()
+        public async Task 假如OutboxEventPublisher的UnitOfWork有活躍的Transaction_應該順利執行Repository的AddAsync行為()
         {
             // Given
             var transactionId = Guid.NewGuid();

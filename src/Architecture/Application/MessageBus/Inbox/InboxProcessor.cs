@@ -4,13 +4,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Architecture.Application.MessageBus.Inbox;
 
-public class InboxProcessor
+public class InboxProcessor : IInboxProcessor
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<InboxProcessor> _logger;
-    private readonly Func<IServiceScope, IntegrationEvent, Task> _consumeIntegrationEventsFunc;
+    private readonly Func<IServiceProvider, IntegrationEvent, Task> _consumeIntegrationEventsFunc;
 
-    public InboxProcessor(IServiceProvider serviceProvider, ILogger<InboxProcessor> logger, Func<IServiceScope, IntegrationEvent, Task> consumeIntegrationEventsFunc)
+    public InboxProcessor(IServiceProvider serviceProvider, ILogger<InboxProcessor> logger, Func<IServiceProvider, IntegrationEvent, Task> consumeIntegrationEventsFunc)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
@@ -30,7 +30,7 @@ public class InboxProcessor
             await repository.SaveAsync(entry, cancellationToken);
 
             var integrationEvent = entry.GetIntegrationEvent();
-            await _consumeIntegrationEventsFunc(scope, integrationEvent);
+            await _consumeIntegrationEventsFunc(scope.ServiceProvider, integrationEvent);
 
             entry.Consume();
             await repository.SaveAsync(entry, cancellationToken);
