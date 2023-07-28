@@ -18,10 +18,9 @@ namespace Architecture.Tests.Application.EventBus.Outbox
 
             var eventOutbox = new EventOutbox(unitOfWork.Object, repository.Object);
             var somethingIntegrationEvent = new SomethingIntegrationEvent();
-            var integrationEvent = IntegrationEvent.Create(somethingIntegrationEvent);
 
             // When
-            var action = () => eventOutbox.SendAsync(integrationEvent);
+            var action = () => eventOutbox.SendAsync(somethingIntegrationEvent);
 
             // Then
             await action.Should().ThrowAsync<InvalidOperationException>();
@@ -40,13 +39,13 @@ namespace Architecture.Tests.Application.EventBus.Outbox
 
             var eventOutbox = new EventOutbox(unitOfWork.Object, repository.Object);
             var somethingIntegrationEvent = new SomethingIntegrationEvent();
-            var integrationEvent = IntegrationEvent.Create(somethingIntegrationEvent);
+            var payload = Payload.Serialize(somethingIntegrationEvent);
 
             // When
-            await eventOutbox.SendAsync(integrationEvent);
+            await eventOutbox.SendAsync(somethingIntegrationEvent);
 
             // Then
-            repository.Verify(m => m.AddAsync(It.Is<IntegrationEventEntry>(e => e.Id == integrationEvent.Id && e.TransactionId == transactionId), default), Times.Once());
+            repository.Verify(m => m.AddAsync(It.Is<IntegrationEventEntry>(e => e.GetPayload() == payload && e.TransactionId == transactionId), default), Times.Once());
         }
     }
 }

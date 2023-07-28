@@ -1,12 +1,12 @@
 namespace Architecture.Domain.EventBus.Outbox;
 
-public class IntegrationEventEntry : AggregateRoot<Guid>, IIntegrationEvent
+public class IntegrationEventEntry : AggregateRoot<Guid>
 {
-    private IntegrationEventEntry(Guid id, DateTime creationTimestamp, string typeName, string message, State state, Guid transactionId) : base(id)
+    private IntegrationEventEntry(Guid id, DateTime creationTimestamp, string typeName, string content, State state, Guid transactionId) : base(id)
     {
         CreationTimestamp = creationTimestamp;
         TypeName = typeName;
-        Message = message;
+        Content = content;
         State = state;
         TransactionId = transactionId;
     }
@@ -15,27 +15,27 @@ public class IntegrationEventEntry : AggregateRoot<Guid>, IIntegrationEvent
 
     public string TypeName { get; private set; } = string.Empty;
 
-    public string Message { get; private set; } = string.Empty;
+    public string Content { get; private set; } = string.Empty;
 
     public State State { get; private set; }
 
     public Guid TransactionId { get; private set; }
 
-    public IntegrationEvent GetIntegrationEvent()
+    public Payload GetPayload()
     {
-        return IntegrationEvent.Create(Id, CreationTimestamp, TypeName, Message);
+        return Payload.Create(Id, CreationTimestamp, TypeName, Content);
     }
 
-    public static IntegrationEventEntry Raise(IntegrationEvent integrationEvent, Guid transactionId)
+    public static IntegrationEventEntry Raise(Payload payload, Guid transactionId)
     {
         var state = State.Raised;
 
         return new IntegrationEventEntry
         (
-            integrationEvent.Id,
-            integrationEvent.CreationTimestamp,
-            integrationEvent.TypeName,
-            integrationEvent.Message,
+            payload.Id,
+            payload.CreationTimestamp,
+            payload.TypeName,
+            payload.Content,
             state,
             transactionId
         );

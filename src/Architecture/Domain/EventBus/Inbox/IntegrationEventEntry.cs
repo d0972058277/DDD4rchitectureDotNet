@@ -2,11 +2,11 @@ namespace Architecture.Domain.EventBus.Inbox;
 
 public class IntegrationEventEntry : AggregateRoot<Guid>
 {
-    private IntegrationEventEntry(Guid id, DateTime creationTimestamp, string typeName, string message, State state) : base(id)
+    private IntegrationEventEntry(Guid id, DateTime creationTimestamp, string typeName, string content, State state) : base(id)
     {
         CreationTimestamp = creationTimestamp;
         TypeName = typeName;
-        Message = message;
+        Content = content;
         State = state;
     }
 
@@ -14,25 +14,25 @@ public class IntegrationEventEntry : AggregateRoot<Guid>
 
     public string TypeName { get; private set; } = string.Empty;
 
-    public string Message { get; private set; } = string.Empty;
+    public string Content { get; private set; } = string.Empty;
 
     public State State { get; private set; }
 
-    public IntegrationEvent GetIntegrationEvent()
+    public Payload GetPayload()
     {
-        return IntegrationEvent.Create(Id, CreationTimestamp, TypeName, Message);
+        return Payload.Create(Id, CreationTimestamp, TypeName, Content);
     }
 
-    public static IntegrationEventEntry Receive(IntegrationEvent integrationEvent)
+    public static IntegrationEventEntry Receive(Payload payload)
     {
         var state = State.Received;
 
         return new IntegrationEventEntry
         (
-            integrationEvent.Id,
-            integrationEvent.CreationTimestamp,
-            integrationEvent.TypeName,
-            integrationEvent.Message, state
+            payload.Id,
+            payload.CreationTimestamp,
+            payload.TypeName,
+            payload.Content, state
         );
     }
 

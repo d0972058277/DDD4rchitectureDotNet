@@ -1,3 +1,5 @@
+using Architecture.Domain.EventBus;
+
 namespace Architecture.Tests;
 
 public class SomethingIntegrationEvent : IIntegrationEvent

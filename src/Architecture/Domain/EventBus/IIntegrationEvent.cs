@@ -1,4 +1,4 @@
-namespace Architecture;
+namespace Architecture.Domain.EventBus;
 
 public interface IIntegrationEvent
 {

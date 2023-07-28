@@ -14,12 +14,12 @@ public class EventInboxTests
 
         var eventInbox = new EventInbox(repository.Object);
         var somethingIntegrationEvent = new SomethingIntegrationEvent();
-        var integrationEvent = IntegrationEvent.Create(somethingIntegrationEvent);
+        var payload = Payload.Serialize(somethingIntegrationEvent);
 
         // When
-        await eventInbox.ReceiveAsync(integrationEvent);
+        await eventInbox.ReceiveAsync(somethingIntegrationEvent);
 
         // Then
-        repository.Verify(m => m.AddAsync(It.Is<IntegrationEventEntry>(e => e.Id == integrationEvent.Id), default), Times.Once());
+        repository.Verify(m => m.AddAsync(It.Is<IntegrationEventEntry>(e => e.GetPayload() == payload), default), Times.Once());
     }
 }

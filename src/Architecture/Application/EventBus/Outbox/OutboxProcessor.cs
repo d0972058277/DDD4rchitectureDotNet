@@ -4,13 +4,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Architecture.Application.EventBus.Outbox;
 
-public class OutboxProcessor
+public class OutboxProcessor : IOutboxProcessor
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<OutboxProcessor> _logger;
-    private readonly Func<IServiceProvider, IEnumerable<IntegrationEvent>, Task> _publishIntegrationEventsFunc;
+    private readonly Func<IServiceProvider, IEnumerable<Payload>, Task> _publishIntegrationEventsFunc;
 
-    public OutboxProcessor(IServiceProvider serviceProvider, ILogger<OutboxProcessor> logger, Func<IServiceProvider, IEnumerable<IntegrationEvent>, Task> publishIntegrationEventsFunc)
+    public OutboxProcessor(IServiceProvider serviceProvider, ILogger<OutboxProcessor> logger, Func<IServiceProvider, IEnumerable<Payload>, Task> publishIntegrationEventsFunc)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
@@ -26,12 +26,14 @@ public class OutboxProcessor
 
             var entries = await repository.FindAsync(transactionId, cancellationToken);
 
+            // TODO: 處理 !IntegrationEventEntries.Any() 不做事
+
             foreach (var entry in entries)
                 entry.Progress();
             await repository.SaveAsync(entries, cancellationToken);
 
-            var integrationEvents = entries.Select(e => e.GetIntegrationEvent()).ToList();
-            await _publishIntegrationEventsFunc(scope.ServiceProvider, integrationEvents);
+            var payloads = entries.Select(e => e.GetPayload()).ToList();
+            await _publishIntegrationEventsFunc(scope.ServiceProvider, payloads);
 
             foreach (var entry in entries)
                 entry.Publish();

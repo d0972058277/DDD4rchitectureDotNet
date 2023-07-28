@@ -4,5 +4,5 @@ namespace Architecture.Application.EventBus;
 
 public interface IEventInbox
 {
-    Task ReceiveAsync(IntegrationEvent integrationEvent, CancellationToken cancellationToken = default);
+    Task ReceiveAsync<T>(T @event, CancellationToken cancellationToken = default) where T : IIntegrationEvent;
 }
