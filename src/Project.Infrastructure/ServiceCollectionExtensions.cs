@@ -36,7 +36,6 @@ public static class ServiceCollectionExtensions
         services.AddDbContext<ReadOnlyProjectDbContext>(readOnlyDbContextOptionsAction);
 
         services.AddTransient<IEventOutbox, EventOutbox>();
-        services.TryAddSingleton<IOutboxProcessor, EmptyOutboxProcessor>();
 
         return services;
     }
