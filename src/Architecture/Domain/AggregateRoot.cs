@@ -4,6 +4,7 @@ namespace Architecture.Domain
 {
     public abstract class AggregateRoot<TId> : Entity<TId>, IAggregateRoot where TId : IComparable<TId>
     {
+        protected AggregateRoot() : base() { }
         protected AggregateRoot(TId id) : base(id) { }
 
         private readonly List<IDomainEvent> _domainEvents = new();
