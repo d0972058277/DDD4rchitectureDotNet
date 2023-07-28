@@ -36,17 +36,17 @@ public class IntegrationEventEntryTests
     }
 
     [Fact]
-    public void 處理後_狀態應該要是Consumed()
+    public void 處理後_狀態應該要是Handled()
     {
         // Given
         var integrationEvent = GetIntegrationEventEntry();
         integrationEvent.Progress();
 
         // When
-        integrationEvent.Consume();
+        integrationEvent.Handle();
 
         // Then
-        integrationEvent.State.Should().Be(State.Consumed);
+        integrationEvent.State.Should().Be(State.Handled);
     }
 
     private static IntegrationEvent GetIntegrationEvent()

@@ -4,5 +4,5 @@ public enum State
 {
     Received = 0,
     InProgress = 1,
-    Consumed = 2
+    Handled = 2
 }

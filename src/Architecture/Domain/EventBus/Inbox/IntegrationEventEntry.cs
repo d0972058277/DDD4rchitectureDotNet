@@ -41,8 +41,8 @@ public class IntegrationEventEntry : AggregateRoot<Guid>
         State = State.InProgress;
     }
 
-    public void Consume()
+    public void Handle()
     {
-        State = State.Consumed;
+        State = State.Handled;
     }
 }

@@ -32,7 +32,7 @@ public class InboxProcessor : IInboxProcessor
             var integrationEvent = entry.GetIntegrationEvent();
             await _consumeIntegrationEventsFunc(scope.ServiceProvider, integrationEvent);
 
-            entry.Consume();
+            entry.Handle();
             await repository.SaveAsync(entry, cancellationToken);
         }
         catch (Exception ex)
