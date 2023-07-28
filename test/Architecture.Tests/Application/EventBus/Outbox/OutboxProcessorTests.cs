@@ -44,6 +44,37 @@ public class OutboxProcessorTests
     }
 
     [Fact]
+    public void 如果FindAsync沒有找到任何IntegrationEventEntry_應該不做事()
+    {
+        // Given
+        var entry = GetIntegrationEventEntry();
+        var transactionId = entry.TransactionId;
+
+        var serviceProvider = new Mock<IServiceProvider>();
+        var serviceScopeFactory = new Mock<IServiceScopeFactory>();
+        var serviceScope = new Mock<IServiceScope>();
+
+        serviceProvider.Setup(m => m.GetService(typeof(IServiceScopeFactory))).Returns(serviceScopeFactory.Object);
+        serviceScopeFactory.Setup(m => m.CreateScope()).Returns(serviceScope.Object);
+        serviceScope.Setup(m => m.ServiceProvider).Returns(serviceProvider.Object);
+
+        var repository = new Mock<IIntegrationEventRepository>();
+        serviceProvider.Setup(m => m.GetService(typeof(IIntegrationEventRepository))).Returns(repository.Object);
+        repository.Setup(m => m.FindAsync(transactionId, default)).ReturnsAsync(new List<IntegrationEventEntry>());
+
+        var logger = new Mock<ILogger<OutboxProcessor>>();
+        var func = new Mock<Func<IServiceProvider, IEnumerable<Payload>, Task>>();
+
+        var outboxProcessor = new OutboxProcessor(serviceProvider.Object, logger.Object, func.Object);
+
+        // When
+
+        // Then
+        repository.Verify(m => m.SaveAsync(It.IsAny<IEnumerable<IntegrationEventEntry>>(), default), Times.Never());
+        func.Verify(m => m(serviceProvider.Object, It.IsAny<IEnumerable<Payload>>()), Times.Never());
+    }
+
+    [Fact]
     public async Task 如果FindAsync拋出例外_應該被記錄()
     {
         // Given

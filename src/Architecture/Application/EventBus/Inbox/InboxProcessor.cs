@@ -24,9 +24,11 @@ public class InboxProcessor : IInboxProcessor
             using var scope = _serviceProvider.CreateScope();
             var repository = scope.ServiceProvider.GetRequiredService<IIntegrationEventRepository>();
 
-            var entry = await repository.FindAsync(integrationEventId, cancellationToken);
+            var entryFound = await repository.FindAsync(integrationEventId, cancellationToken);
+            if (entryFound.HasNoValue)
+                return;
 
-            // TODO: 處理 Maybe<IntegrationEventEntry>.HasNoValue 不做事
+            var entry = entryFound.Value;
 
             entry.Progress();
             await repository.SaveAsync(entry, cancellationToken);

@@ -1,6 +1,7 @@
 using Architecture.Application.EventBus.Inbox;
 using Architecture.Domain.EventBus;
 using Architecture.Domain.EventBus.Inbox;
+using CSharpFunctionalExtensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -40,6 +41,40 @@ public class InboxProcessorTests
         repository.Verify(m => m.FindAsync(integrationEventEntryId, default), Times.Once());
         repository.Verify(m => m.SaveAsync(entry, default), Times.Exactly(2));
         func.Verify(m => m(serviceProvider.Object, payload), Times.Once());
+    }
+
+    [Fact]
+    public async Task 如果FindAsync沒有找到IntegrationEventEntry_應該不做事()
+    {
+        // Given
+        var entry = GetIntegrationEventEntry();
+        var integrationEventEntryId = entry.Id;
+        var payload = entry.GetPayload();
+
+
+        var serviceProvider = new Mock<IServiceProvider>();
+        var serviceScopeFactory = new Mock<IServiceScopeFactory>();
+        var serviceScope = new Mock<IServiceScope>();
+
+        serviceProvider.Setup(m => m.GetService(typeof(IServiceScopeFactory))).Returns(serviceScopeFactory.Object);
+        serviceScopeFactory.Setup(m => m.CreateScope()).Returns(serviceScope.Object);
+        serviceScope.Setup(m => m.ServiceProvider).Returns(serviceProvider.Object);
+
+        var repository = new Mock<IIntegrationEventRepository>();
+        serviceProvider.Setup(m => m.GetService(typeof(IIntegrationEventRepository))).Returns(repository.Object);
+        repository.Setup(m => m.FindAsync(integrationEventEntryId, default)).ReturnsAsync(Maybe<IntegrationEventEntry>.None);
+
+        var logger = new Mock<ILogger<InboxProcessor>>();
+        var func = new Mock<Func<IServiceProvider, Payload, Task>>();
+
+        var inboxProcessor = new InboxProcessor(serviceProvider.Object, logger.Object, func.Object);
+
+        // When
+        await inboxProcessor.ProcessAsync(integrationEventEntryId, default);
+
+        // Then
+        repository.Verify(m => m.SaveAsync(entry, default), Times.Never());
+        func.Verify(m => m(serviceProvider.Object, payload), Times.Never());
     }
 
     [Fact]
