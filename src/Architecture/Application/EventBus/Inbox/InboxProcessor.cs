@@ -8,6 +8,8 @@ public class InboxProcessor : IInboxProcessor
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<InboxProcessor> _logger;
+
+    // TODO: 應該改寫 Func 的寫法，有其他更好的做法
     private readonly Func<IServiceProvider, Payload, Task> _consumeIntegrationEventsFunc;
 
     public InboxProcessor(IServiceProvider serviceProvider, ILogger<InboxProcessor> logger, Func<IServiceProvider, Payload, Task> consumeIntegrationEventsFunc)
