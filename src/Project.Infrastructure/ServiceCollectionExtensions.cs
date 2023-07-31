@@ -7,7 +7,6 @@ using Architecture.Application.EventBus.Outbox;
 using Architecture.Application.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Project.Infrastructure;
 
@@ -35,7 +34,7 @@ public static class ServiceCollectionExtensions
         services.AddDbContext<ProjectDbContext>(transationalDbContextOptionsAction);
         services.AddDbContext<ReadOnlyProjectDbContext>(readOnlyDbContextOptionsAction);
 
-        services.AddTransient<IEventOutbox, EventOutbox>();
+        services.AddTransient<IEventPublisher, OutboxEventPublisher>();
 
         return services;
     }

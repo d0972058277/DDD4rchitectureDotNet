@@ -5,7 +5,7 @@ using Architecture.Domain.EventBus.Outbox;
 
 namespace Architecture.Tests.Application.EventBus.Outbox
 {
-    public class EventOutboxTests
+    public class OutboxEventPublisherTests
     {
         [Fact]
         public async Task 假如OutboxEventPublisher的UnitOfWork沒有活躍的Transaction_應該拋出InvalidOperationException的例外()
@@ -16,11 +16,11 @@ namespace Architecture.Tests.Application.EventBus.Outbox
 
             var repository = new Mock<IIntegrationEventRepository>();
 
-            var eventOutbox = new EventOutbox(unitOfWork.Object, repository.Object);
+            var eventPublisher = new OutboxEventPublisher(unitOfWork.Object, repository.Object);
             var somethingIntegrationEvent = new SomethingIntegrationEvent();
 
             // When
-            var action = () => eventOutbox.SendAsync(somethingIntegrationEvent);
+            var action = () => eventPublisher.PublishAsync(somethingIntegrationEvent);
 
             // Then
             await action.Should().ThrowAsync<InvalidOperationException>();
@@ -37,12 +37,12 @@ namespace Architecture.Tests.Application.EventBus.Outbox
 
             var repository = new Mock<IIntegrationEventRepository>();
 
-            var eventOutbox = new EventOutbox(unitOfWork.Object, repository.Object);
+            var eventPublisher = new OutboxEventPublisher(unitOfWork.Object, repository.Object);
             var somethingIntegrationEvent = new SomethingIntegrationEvent();
             var payload = Payload.Serialize(somethingIntegrationEvent);
 
             // When
-            await eventOutbox.SendAsync(somethingIntegrationEvent);
+            await eventPublisher.PublishAsync(somethingIntegrationEvent);
 
             // Then
             repository.Verify(m => m.AddAsync(It.Is<IntegrationEventEntry>(e => e.GetPayload() == payload && e.TransactionId == transactionId), default), Times.Once());
