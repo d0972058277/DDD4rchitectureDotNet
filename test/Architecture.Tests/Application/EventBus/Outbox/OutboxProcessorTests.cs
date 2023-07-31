@@ -1,3 +1,4 @@
+using Architecture.Application.EventBus;
 using Architecture.Application.EventBus.Outbox;
 using Architecture.Domain.EventBus;
 using Architecture.Domain.EventBus.Outbox;
@@ -29,10 +30,14 @@ public class OutboxProcessorTests
         serviceProvider.Setup(m => m.GetService(typeof(IIntegrationEventRepository))).Returns(repository.Object);
         repository.Setup(m => m.FindAsync(transactionId, default)).ReturnsAsync(entries);
 
-        var logger = new Mock<ILogger<OutboxProcessor>>();
-        var func = new Mock<Func<IServiceProvider, IEnumerable<Payload>, Task>>();
+        var eventOutbox = new Mock<IEventOutbox>();
+        var eventOutboxFactory = new Mock<IEventOutboxFactory>();
+        eventOutboxFactory.Setup(m => m.GetRealityEventOutbox()).Returns(eventOutbox.Object);
+        serviceProvider.Setup(m => m.GetService(typeof(IEventOutboxFactory))).Returns(eventOutboxFactory.Object);
 
-        var outboxProcessor = new OutboxProcessor(serviceProvider.Object, logger.Object, func.Object);
+        var logger = new Mock<ILogger<OutboxProcessor>>();
+
+        var outboxProcessor = new OutboxProcessor(serviceProvider.Object, logger.Object);
 
         // When
         await outboxProcessor.ProcessAsync(transactionId, default);
@@ -40,7 +45,7 @@ public class OutboxProcessorTests
         // Then
         repository.Verify(m => m.FindAsync(transactionId, default), Times.Once());
         repository.Verify(m => m.SaveAsync(entries, default), Times.Exactly(2));
-        func.Verify(m => m(serviceProvider.Object, It.Is<IEnumerable<Payload>>(l => l.SequenceEqual(payloads))), Times.Once());
+        eventOutbox.Verify(m => m.SendAsync(It.Is<IIntegrationEvent>(e => e is SomethingIntegrationEvent && e.Id == entry.Id), default), Times.Once());
     }
 
     [Fact]
@@ -62,16 +67,20 @@ public class OutboxProcessorTests
         serviceProvider.Setup(m => m.GetService(typeof(IIntegrationEventRepository))).Returns(repository.Object);
         repository.Setup(m => m.FindAsync(transactionId, default)).ReturnsAsync(new List<IntegrationEventEntry>());
 
-        var logger = new Mock<ILogger<OutboxProcessor>>();
-        var func = new Mock<Func<IServiceProvider, IEnumerable<Payload>, Task>>();
+        var eventOutbox = new Mock<IEventOutbox>();
+        var eventOutboxFactory = new Mock<IEventOutboxFactory>();
+        eventOutboxFactory.Setup(m => m.GetRealityEventOutbox()).Returns(eventOutbox.Object);
+        serviceProvider.Setup(m => m.GetService(typeof(IEventOutboxFactory))).Returns(eventOutboxFactory.Object);
 
-        var outboxProcessor = new OutboxProcessor(serviceProvider.Object, logger.Object, func.Object);
+        var logger = new Mock<ILogger<OutboxProcessor>>();
+
+        var outboxProcessor = new OutboxProcessor(serviceProvider.Object, logger.Object);
 
         // When
 
         // Then
         repository.Verify(m => m.SaveAsync(It.IsAny<IEnumerable<IntegrationEventEntry>>(), default), Times.Never());
-        func.Verify(m => m(serviceProvider.Object, It.IsAny<IEnumerable<Payload>>()), Times.Never());
+        eventOutbox.Verify(m => m.SendAsync(It.Is<IIntegrationEvent>(e => e is SomethingIntegrationEvent && e.Id == entry.Id), default), Times.Never());
     }
 
     [Fact]
@@ -94,10 +103,14 @@ public class OutboxProcessorTests
         serviceProvider.Setup(m => m.GetService(typeof(IIntegrationEventRepository))).Returns(repository.Object);
         repository.Setup(m => m.FindAsync(It.Is<Guid>(id => id == transactionId), default)).ThrowsAsync(new Exception());
 
-        var logger = new Mock<ILogger<OutboxProcessor>>();
-        var func = new Mock<Func<IServiceProvider, IEnumerable<Payload>, Task>>();
+        var eventOutbox = new Mock<IEventOutbox>();
+        var eventOutboxFactory = new Mock<IEventOutboxFactory>();
+        eventOutboxFactory.Setup(m => m.GetRealityEventOutbox()).Returns(eventOutbox.Object);
+        serviceProvider.Setup(m => m.GetService(typeof(IEventOutboxFactory))).Returns(eventOutboxFactory.Object);
 
-        var outboxProcessor = new OutboxProcessor(serviceProvider.Object, logger.Object, func.Object);
+        var logger = new Mock<ILogger<OutboxProcessor>>();
+
+        var outboxProcessor = new OutboxProcessor(serviceProvider.Object, logger.Object);
 
         // When
         await outboxProcessor.ProcessAsync(transactionId, default);
@@ -133,10 +146,14 @@ public class OutboxProcessorTests
         repository.Setup(m => m.FindAsync(transactionId, default)).ReturnsAsync(entries);
         repository.Setup(m => m.SaveAsync(entries, default)).ThrowsAsync(new Exception());
 
-        var logger = new Mock<ILogger<OutboxProcessor>>();
-        var func = new Mock<Func<IServiceProvider, IEnumerable<Payload>, Task>>();
+        var eventOutbox = new Mock<IEventOutbox>();
+        var eventOutboxFactory = new Mock<IEventOutboxFactory>();
+        eventOutboxFactory.Setup(m => m.GetRealityEventOutbox()).Returns(eventOutbox.Object);
+        serviceProvider.Setup(m => m.GetService(typeof(IEventOutboxFactory))).Returns(eventOutboxFactory.Object);
 
-        var outboxProcessor = new OutboxProcessor(serviceProvider.Object, logger.Object, func.Object);
+        var logger = new Mock<ILogger<OutboxProcessor>>();
+
+        var outboxProcessor = new OutboxProcessor(serviceProvider.Object, logger.Object);
 
         // When
         await outboxProcessor.ProcessAsync(transactionId, default);
@@ -173,16 +190,21 @@ public class OutboxProcessorTests
         serviceProvider.Setup(m => m.GetService(typeof(IIntegrationEventRepository))).Returns(repository.Object);
         repository.Setup(m => m.FindAsync(transactionId, default)).ReturnsAsync(entries);
 
-        var logger = new Mock<ILogger<OutboxProcessor>>();
-        var func = new Mock<Func<IServiceProvider, IEnumerable<Payload>, Task>>();
-        func.Setup(m => m(serviceProvider.Object, payloads)).ThrowsAsync(new Exception());
+        var eventOutbox = new Mock<IEventOutbox>();
+        eventOutbox.Setup(m => m.SendAsync(It.IsAny<IIntegrationEvent>(), default)).ThrowsAsync(new Exception());
+        var eventOutboxFactory = new Mock<IEventOutboxFactory>();
+        eventOutboxFactory.Setup(m => m.GetRealityEventOutbox()).Returns(eventOutbox.Object);
+        serviceProvider.Setup(m => m.GetService(typeof(IEventOutboxFactory))).Returns(eventOutboxFactory.Object);
 
-        var outboxProcessor = new OutboxProcessor(serviceProvider.Object, logger.Object, func.Object);
+        var logger = new Mock<ILogger<OutboxProcessor>>();
+
+        var outboxProcessor = new OutboxProcessor(serviceProvider.Object, logger.Object);
 
         // When
         await outboxProcessor.ProcessAsync(transactionId, default);
 
         // Then
+        eventOutbox.Verify(m => m.SendAsync(It.Is<IIntegrationEvent>(e => e is SomethingIntegrationEvent && e.Id == entry.Id), default), Times.Once());
         logger.Verify(logger => logger.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
@@ -215,10 +237,14 @@ public class OutboxProcessorTests
             .Returns(Task.CompletedTask)
             .ThrowsAsync(new Exception());
 
-        var logger = new Mock<ILogger<OutboxProcessor>>();
-        var func = new Mock<Func<IServiceProvider, IEnumerable<Payload>, Task>>();
+        var eventOutbox = new Mock<IEventOutbox>();
+        var eventOutboxFactory = new Mock<IEventOutboxFactory>();
+        eventOutboxFactory.Setup(m => m.GetRealityEventOutbox()).Returns(eventOutbox.Object);
+        serviceProvider.Setup(m => m.GetService(typeof(IEventOutboxFactory))).Returns(eventOutboxFactory.Object);
 
-        var outboxProcessor = new OutboxProcessor(serviceProvider.Object, logger.Object, func.Object);
+        var logger = new Mock<ILogger<OutboxProcessor>>();
+
+        var outboxProcessor = new OutboxProcessor(serviceProvider.Object, logger.Object);
 
         // When
         await outboxProcessor.ProcessAsync(transactionId, default);
