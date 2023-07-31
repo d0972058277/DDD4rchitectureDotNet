@@ -4,5 +4,5 @@ namespace Architecture.Application.EventBus;
 
 public interface IEventConsumer
 {
-    Task ConsumeAsync<T>(T @event, CancellationToken cancellationToken = default) where T : IIntegrationEvent;
+    Task ConsumeAsync<TIntegrationEvent>(TIntegrationEvent integrationEvent, CancellationToken cancellationToken = default) where TIntegrationEvent : IIntegrationEvent;
 }

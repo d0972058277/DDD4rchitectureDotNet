@@ -41,4 +41,14 @@ public class EventPublisherFactoryTests
         // Then
         func.Should().Throw<InvalidOperationException>();
     }
+
+    [Fact(Skip = "GetOutboxEventPublisher")]
+    public void TestName()
+    {
+        // Given
+
+        // When
+
+        // Then
+    }
 }

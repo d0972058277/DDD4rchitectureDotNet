@@ -7,6 +7,7 @@ using Architecture.Application.EventBus.Outbox;
 using Architecture.Application.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Project.Infrastructure;
 
@@ -22,7 +23,7 @@ public static class ServiceCollectionExtensions
         services.AddAllTypes<IRepository>(ServiceLifetime.Transient);
 
         services.AddTransient<IEventMediator, EventMediator>();
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
+
 
         services.AddMediatR(cfg =>
         {
@@ -34,7 +35,22 @@ public static class ServiceCollectionExtensions
         services.AddDbContext<ProjectDbContext>(transationalDbContextOptionsAction);
         services.AddDbContext<ReadOnlyProjectDbContext>(readOnlyDbContextOptionsAction);
 
+        services.AddTransient<IEventBus, EventBus>();
+        services.AddTransient<IEventPublisherFactory, EventPublisherFactory>();
         services.AddTransient<IEventPublisher, OutboxEventPublisher>();
+        services.AddTransient<IEventPublisher, EventPublisher>();
+        services.AddSingleton<IOutboxProcessor, OutboxProcessor>();
+
+        services.AddScoped<IUnitOfWork>(sp =>
+        {
+            var dbContext = sp.GetRequiredService<ProjectDbContext>();
+            var outboxProcessor = sp.GetRequiredService<IOutboxProcessor>();
+            var logger = sp.GetRequiredService<ILogger<UnitOfWorkOutboxDecorator>>();
+
+            IUnitOfWork unitOfWork = new UnitOfWork(dbContext);
+            unitOfWork = new UnitOfWorkOutboxDecorator(unitOfWork, outboxProcessor, logger);
+            return unitOfWork;
+        });
 
         return services;
     }
