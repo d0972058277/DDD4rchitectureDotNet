@@ -3,11 +3,11 @@ using Architecture.Domain.EventBus.Inbox;
 
 namespace Architecture.Application.EventBus.Inbox;
 
-public class InboxEventConsumer : IEventConsumer
+public class EventInbox : IEventInbox
 {
     private readonly IIntegrationEventRepository _repository;
 
-    public InboxEventConsumer(IIntegrationEventRepository repository)
+    public EventInbox(IIntegrationEventRepository repository)
     {
         _repository = repository;
     }

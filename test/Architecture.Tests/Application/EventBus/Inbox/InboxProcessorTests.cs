@@ -1,3 +1,4 @@
+using Architecture.Application.EventBus;
 using Architecture.Application.EventBus.Inbox;
 using Architecture.Domain.EventBus;
 using Architecture.Domain.EventBus.Inbox;
@@ -29,10 +30,12 @@ public class InboxProcessorTests
         serviceProvider.Setup(m => m.GetService(typeof(IIntegrationEventRepository))).Returns(repository.Object);
         repository.Setup(m => m.FindAsync(integrationEventEntryId, default)).ReturnsAsync(entry);
 
-        var logger = new Mock<ILogger<InboxProcessor>>();
-        var func = new Mock<Func<IServiceProvider, Payload, Task>>();
+        var eventConsumer = new Mock<IEventConsumer>();
+        serviceProvider.Setup(m => m.GetService(typeof(IEventConsumer))).Returns(eventConsumer.Object);
 
-        var inboxProcessor = new InboxProcessor(serviceProvider.Object, logger.Object, func.Object);
+        var logger = new Mock<ILogger<InboxProcessor>>();
+
+        var inboxProcessor = new InboxProcessor(serviceProvider.Object, logger.Object);
 
         // When
         await inboxProcessor.ProcessAsync(integrationEventEntryId, default);
@@ -40,7 +43,7 @@ public class InboxProcessorTests
         // Then
         repository.Verify(m => m.FindAsync(integrationEventEntryId, default), Times.Once());
         repository.Verify(m => m.SaveAsync(entry, default), Times.Exactly(2));
-        func.Verify(m => m(serviceProvider.Object, payload), Times.Once());
+        eventConsumer.Verify(m => m.ConsumeAsync(It.Is<IIntegrationEvent>(e => e is SomethingIntegrationEvent && e.Id == entry.Id), default), Times.Once());
     }
 
     [Fact]
@@ -64,17 +67,19 @@ public class InboxProcessorTests
         serviceProvider.Setup(m => m.GetService(typeof(IIntegrationEventRepository))).Returns(repository.Object);
         repository.Setup(m => m.FindAsync(integrationEventEntryId, default)).ReturnsAsync(Maybe<IntegrationEventEntry>.None);
 
-        var logger = new Mock<ILogger<InboxProcessor>>();
-        var func = new Mock<Func<IServiceProvider, Payload, Task>>();
+        var eventConsumer = new Mock<IEventConsumer>();
+        serviceProvider.Setup(m => m.GetService(typeof(IEventConsumer))).Returns(eventConsumer.Object);
 
-        var inboxProcessor = new InboxProcessor(serviceProvider.Object, logger.Object, func.Object);
+        var logger = new Mock<ILogger<InboxProcessor>>();
+
+        var inboxProcessor = new InboxProcessor(serviceProvider.Object, logger.Object);
 
         // When
         await inboxProcessor.ProcessAsync(integrationEventEntryId, default);
 
         // Then
         repository.Verify(m => m.SaveAsync(entry, default), Times.Never());
-        func.Verify(m => m(serviceProvider.Object, payload), Times.Never());
+        eventConsumer.Verify(m => m.ConsumeAsync(It.Is<IIntegrationEvent>(e => e is SomethingIntegrationEvent && e.Id == entry.Id), default), Times.Never());
     }
 
     [Fact]
@@ -96,10 +101,12 @@ public class InboxProcessorTests
         serviceProvider.Setup(m => m.GetService(typeof(IIntegrationEventRepository))).Returns(repository.Object);
         repository.Setup(m => m.FindAsync(integrationEventEntryId, default)).ThrowsAsync(new Exception());
 
-        var logger = new Mock<ILogger<InboxProcessor>>();
-        var func = new Mock<Func<IServiceProvider, Payload, Task>>();
+        var eventConsumer = new Mock<IEventConsumer>();
+        serviceProvider.Setup(m => m.GetService(typeof(IEventConsumer))).Returns(eventConsumer.Object);
 
-        var inboxProcessor = new InboxProcessor(serviceProvider.Object, logger.Object, func.Object);
+        var logger = new Mock<ILogger<InboxProcessor>>();
+
+        var inboxProcessor = new InboxProcessor(serviceProvider.Object, logger.Object);
 
         // When
         await inboxProcessor.ProcessAsync(integrationEventEntryId, default);
@@ -134,10 +141,12 @@ public class InboxProcessorTests
         repository.Setup(m => m.FindAsync(integrationEventEntryId, default)).ReturnsAsync(entry);
         repository.Setup(m => m.SaveAsync(entry, default)).ThrowsAsync(new Exception());
 
-        var logger = new Mock<ILogger<InboxProcessor>>();
-        var func = new Mock<Func<IServiceProvider, Payload, Task>>();
+        var eventConsumer = new Mock<IEventConsumer>();
+        serviceProvider.Setup(m => m.GetService(typeof(IEventConsumer))).Returns(eventConsumer.Object);
 
-        var inboxProcessor = new InboxProcessor(serviceProvider.Object, logger.Object, func.Object);
+        var logger = new Mock<ILogger<InboxProcessor>>();
+
+        var inboxProcessor = new InboxProcessor(serviceProvider.Object, logger.Object);
 
         // When
         await inboxProcessor.ProcessAsync(integrationEventEntryId, default);
@@ -154,7 +163,7 @@ public class InboxProcessorTests
     }
 
     [Fact]
-    public async Task 如果執行處理Event的Func拋出例外_應該被記錄()
+    public async Task 如果執行處理Event的動作拋出例外_應該被記錄()
     {
         // Given
         var entry = GetIntegrationEventEntry();
@@ -173,16 +182,19 @@ public class InboxProcessorTests
         serviceProvider.Setup(m => m.GetService(typeof(IIntegrationEventRepository))).Returns(repository.Object);
         repository.Setup(m => m.FindAsync(integrationEventEntryId, default)).ReturnsAsync(entry);
 
-        var logger = new Mock<ILogger<InboxProcessor>>();
-        var func = new Mock<Func<IServiceProvider, Payload, Task>>();
-        func.Setup(m => m(serviceProvider.Object, payload)).ThrowsAsync(new Exception());
+        var eventConsumer = new Mock<IEventConsumer>();
+        eventConsumer.Setup(m => m.ConsumeAsync(It.IsAny<IIntegrationEvent>(), default)).ThrowsAsync(new Exception());
+        serviceProvider.Setup(m => m.GetService(typeof(IEventConsumer))).Returns(eventConsumer.Object);
 
-        var inboxProcessor = new InboxProcessor(serviceProvider.Object, logger.Object, func.Object);
+        var logger = new Mock<ILogger<InboxProcessor>>();
+
+        var inboxProcessor = new InboxProcessor(serviceProvider.Object, logger.Object);
 
         // When
         await inboxProcessor.ProcessAsync(integrationEventEntryId, default);
 
         // Then
+        eventConsumer.Verify(m => m.ConsumeAsync(It.Is<IIntegrationEvent>(e => e is SomethingIntegrationEvent && e.Id == entry.Id), default), Times.Once());
         logger.Verify(logger => logger.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
@@ -214,10 +226,13 @@ public class InboxProcessorTests
             .Returns(Task.CompletedTask)
             .ThrowsAsync(new Exception());
 
+        var eventConsumer = new Mock<IEventConsumer>();
+        serviceProvider.Setup(m => m.GetService(typeof(IEventConsumer))).Returns(eventConsumer.Object);
+
         var logger = new Mock<ILogger<InboxProcessor>>();
         var func = new Mock<Func<IServiceProvider, Payload, Task>>();
 
-        var inboxProcessor = new InboxProcessor(serviceProvider.Object, logger.Object, func.Object);
+        var inboxProcessor = new InboxProcessor(serviceProvider.Object, logger.Object);
 
         // When
         await inboxProcessor.ProcessAsync(integrationEventEntryId, default);

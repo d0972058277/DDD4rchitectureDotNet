@@ -35,9 +35,7 @@ public static class ServiceCollectionExtensions
         services.AddDbContext<ProjectDbContext>(transationalDbContextOptionsAction);
         services.AddDbContext<ReadOnlyProjectDbContext>(readOnlyDbContextOptionsAction);
 
-        services.AddTransient<IEventBus, EventBus>();
-        services.AddTransient<IEventPublisherFactory, EventPublisherFactory>();
-        services.AddTransient<IEventPublisher, OutboxEventPublisher>();
+        services.AddTransient<IEventOutbox, EventOutbox>();
         services.AddTransient<IEventPublisher, EventPublisher>();
         services.AddSingleton<IOutboxProcessor, OutboxProcessor>();
 

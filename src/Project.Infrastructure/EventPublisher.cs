@@ -17,7 +17,7 @@ public class EventPublisher : IEventPublisher
     public Task PublishAsync<TIntegrationEvent>(TIntegrationEvent integrationEvent, CancellationToken cancellationToken = default) where TIntegrationEvent : IIntegrationEvent
     {
         var typeName = integrationEvent.GetGenericTypeName();
-        _logger.LogInformation("Send {IntegrationEventTypeName} {@IntegrationEvent}", typeName, integrationEvent);
+        _logger.LogInformation("Publish {IntegrationEventTypeName} {@IntegrationEvent}", typeName, integrationEvent);
         return Task.CompletedTask;
     }
 }

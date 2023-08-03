@@ -31,9 +31,7 @@ public class OutboxProcessorTests
         repository.Setup(m => m.FindAsync(transactionId, default)).ReturnsAsync(entries);
 
         var eventPublisher = new Mock<IEventPublisher>();
-        var eventPublisherFactory = new Mock<IEventPublisherFactory>();
-        eventPublisherFactory.Setup(m => m.GetRealityEventPublisher()).Returns(eventPublisher.Object);
-        serviceProvider.Setup(m => m.GetService(typeof(IEventPublisherFactory))).Returns(eventPublisherFactory.Object);
+        serviceProvider.Setup(m => m.GetService(typeof(IEventPublisher))).Returns(eventPublisher.Object);
 
         var logger = new Mock<ILogger<OutboxProcessor>>();
 
@@ -68,9 +66,7 @@ public class OutboxProcessorTests
         repository.Setup(m => m.FindAsync(transactionId, default)).ReturnsAsync(new List<IntegrationEventEntry>());
 
         var eventPublisher = new Mock<IEventPublisher>();
-        var eventPublisherFactory = new Mock<IEventPublisherFactory>();
-        eventPublisherFactory.Setup(m => m.GetRealityEventPublisher()).Returns(eventPublisher.Object);
-        serviceProvider.Setup(m => m.GetService(typeof(IEventPublisherFactory))).Returns(eventPublisherFactory.Object);
+        serviceProvider.Setup(m => m.GetService(typeof(IEventPublisher))).Returns(eventPublisher.Object);
 
         var logger = new Mock<ILogger<OutboxProcessor>>();
 
@@ -104,9 +100,7 @@ public class OutboxProcessorTests
         repository.Setup(m => m.FindAsync(It.Is<Guid>(id => id == transactionId), default)).ThrowsAsync(new Exception());
 
         var eventPublisher = new Mock<IEventPublisher>();
-        var eventPublisherFactory = new Mock<IEventPublisherFactory>();
-        eventPublisherFactory.Setup(m => m.GetRealityEventPublisher()).Returns(eventPublisher.Object);
-        serviceProvider.Setup(m => m.GetService(typeof(IEventPublisherFactory))).Returns(eventPublisherFactory.Object);
+        serviceProvider.Setup(m => m.GetService(typeof(IEventPublisher))).Returns(eventPublisher.Object);
 
         var logger = new Mock<ILogger<OutboxProcessor>>();
 
@@ -147,9 +141,7 @@ public class OutboxProcessorTests
         repository.Setup(m => m.SaveAsync(entries, default)).ThrowsAsync(new Exception());
 
         var eventPublisher = new Mock<IEventPublisher>();
-        var eventPublisherFactory = new Mock<IEventPublisherFactory>();
-        eventPublisherFactory.Setup(m => m.GetRealityEventPublisher()).Returns(eventPublisher.Object);
-        serviceProvider.Setup(m => m.GetService(typeof(IEventPublisherFactory))).Returns(eventPublisherFactory.Object);
+        serviceProvider.Setup(m => m.GetService(typeof(IEventPublisher))).Returns(eventPublisher.Object);
 
         var logger = new Mock<ILogger<OutboxProcessor>>();
 
@@ -170,7 +162,7 @@ public class OutboxProcessorTests
     }
 
     [Fact]
-    public async Task 如果執行發佈Events的Func拋出例外_應該被記錄()
+    public async Task 如果執行發佈Events的動作拋出例外_應該被記錄()
     {
         // Given
         var entry = GetIntegrationEventEntry();
@@ -192,9 +184,7 @@ public class OutboxProcessorTests
 
         var eventPublisher = new Mock<IEventPublisher>();
         eventPublisher.Setup(m => m.PublishAsync(It.IsAny<IIntegrationEvent>(), default)).ThrowsAsync(new Exception());
-        var eventPublisherFactory = new Mock<IEventPublisherFactory>();
-        eventPublisherFactory.Setup(m => m.GetRealityEventPublisher()).Returns(eventPublisher.Object);
-        serviceProvider.Setup(m => m.GetService(typeof(IEventPublisherFactory))).Returns(eventPublisherFactory.Object);
+        serviceProvider.Setup(m => m.GetService(typeof(IEventPublisher))).Returns(eventPublisher.Object);
 
         var logger = new Mock<ILogger<OutboxProcessor>>();
 
@@ -238,9 +228,7 @@ public class OutboxProcessorTests
             .ThrowsAsync(new Exception());
 
         var eventPublisher = new Mock<IEventPublisher>();
-        var eventPublisherFactory = new Mock<IEventPublisherFactory>();
-        eventPublisherFactory.Setup(m => m.GetRealityEventPublisher()).Returns(eventPublisher.Object);
-        serviceProvider.Setup(m => m.GetService(typeof(IEventPublisherFactory))).Returns(eventPublisherFactory.Object);
+        serviceProvider.Setup(m => m.GetService(typeof(IEventPublisher))).Returns(eventPublisher.Object);
 
         var logger = new Mock<ILogger<OutboxProcessor>>();
 

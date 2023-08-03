@@ -13,15 +13,15 @@ public class AggregateCreatedDomainEventHandlerTests
     {
         // Given
         var id = Guid.NewGuid();
-        var eventPublisher = new Mock<IEventPublisher>();
+        var eventOutbox = new Mock<IEventOutbox>();
 
         var domainEvent = new AggregateCreatedDomainEvent(id);
-        var handler = new AggregateCreatedDomainEventHandler(eventPublisher.Object);
+        var handler = new AggregateCreatedDomainEventHandler(eventOutbox.Object);
 
         // When
         await handler.Handle(domainEvent, default);
 
         // Then
-        eventPublisher.Verify(m => m.PublishAsync(It.Is<AggregateCreatedIntegrationEvent>(e => e.SomethingAggregateId == domainEvent.SomethingAggregateId), default), Times.Once());
+        eventOutbox.Verify(m => m.PublishAsync(It.Is<AggregateCreatedIntegrationEvent>(e => e.SomethingAggregateId == domainEvent.SomethingAggregateId), default), Times.Once());
     }
 }

@@ -51,7 +51,9 @@ public class CreateAggregateUseCase
         var integrationEventEntry = await _readOnlyDbContext.Outbox.SingleAsync();
         integrationEventEntry.GetPayload().Deserialize().As<AggregateCreatedIntegrationEvent>().SomethingAggregateId.Should().Be(something.Id);
 
-        // TODO: 驗證事件發佈出去
+        // TODO: 驗證事件已發佈
+
+        // TODO: 驗證事件已消耗
     }
 
     private static List<SomethingValueObject> GetSomethingValueObjects()

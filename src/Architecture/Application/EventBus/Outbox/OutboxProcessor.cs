@@ -20,8 +20,7 @@ public class OutboxProcessor : IOutboxProcessor
         {
             using var scope = _serviceProvider.CreateScope();
             var repository = scope.ServiceProvider.GetRequiredService<IIntegrationEventRepository>();
-            var eventPublisherFactory = scope.ServiceProvider.GetRequiredService<IEventPublisherFactory>();
-            var eventPublisher = eventPublisherFactory.GetRealityEventPublisher();
+            var eventPublisher = scope.ServiceProvider.GetRequiredService<IEventPublisher>();
 
             var entries = await repository.FindAsync(transactionId, cancellationToken);
 

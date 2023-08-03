@@ -12,7 +12,7 @@ public class EventInboxTests
         // Given
         var repository = new Mock<IIntegrationEventRepository>();
 
-        var inboxEventConsumer = new InboxEventConsumer(repository.Object);
+        var inboxEventConsumer = new EventInbox(repository.Object);
         var somethingIntegrationEvent = new SomethingIntegrationEvent();
         var payload = Payload.Serialize(somethingIntegrationEvent);
 

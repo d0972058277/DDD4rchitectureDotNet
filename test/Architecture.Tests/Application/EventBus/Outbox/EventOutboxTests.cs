@@ -5,10 +5,10 @@ using Architecture.Domain.EventBus.Outbox;
 
 namespace Architecture.Tests.Application.EventBus.Outbox
 {
-    public class OutboxEventPublisherTests
+    public class EventOutboxTests
     {
         [Fact]
-        public async Task 假如OutboxEventPublisher的UnitOfWork沒有活躍的Transaction_應該拋出InvalidOperationException的例外()
+        public async Task 假如EventOutbox的UnitOfWork沒有活躍的Transaction_應該拋出InvalidOperationException的例外()
         {
             // Given
             var unitOfWork = new Mock<IUnitOfWork>();
@@ -16,18 +16,18 @@ namespace Architecture.Tests.Application.EventBus.Outbox
 
             var repository = new Mock<IIntegrationEventRepository>();
 
-            var eventPublisher = new OutboxEventPublisher(unitOfWork.Object, repository.Object);
+            var eventOutbox = new EventOutbox(unitOfWork.Object, repository.Object);
             var somethingIntegrationEvent = new SomethingIntegrationEvent();
 
             // When
-            var action = () => eventPublisher.PublishAsync(somethingIntegrationEvent);
+            var action = () => eventOutbox.PublishAsync(somethingIntegrationEvent);
 
             // Then
             await action.Should().ThrowAsync<InvalidOperationException>();
         }
 
         [Fact]
-        public async Task 假如OutboxEventPublisher的UnitOfWork有活躍的Transaction_應該順利執行Repository的AddAsync行為()
+        public async Task 假如EventOutbox的UnitOfWork有活躍的Transaction_應該順利執行Repository的AddAsync行為()
         {
             // Given
             var transactionId = Guid.NewGuid();
@@ -37,12 +37,12 @@ namespace Architecture.Tests.Application.EventBus.Outbox
 
             var repository = new Mock<IIntegrationEventRepository>();
 
-            var eventPublisher = new OutboxEventPublisher(unitOfWork.Object, repository.Object);
+            var eventOutbox = new EventOutbox(unitOfWork.Object, repository.Object);
             var somethingIntegrationEvent = new SomethingIntegrationEvent();
             var payload = Payload.Serialize(somethingIntegrationEvent);
 
             // When
-            await eventPublisher.PublishAsync(somethingIntegrationEvent);
+            await eventOutbox.PublishAsync(somethingIntegrationEvent);
 
             // Then
             repository.Verify(m => m.AddAsync(It.Is<IntegrationEventEntry>(e => e.GetPayload() == payload && e.TransactionId == transactionId), default), Times.Once());

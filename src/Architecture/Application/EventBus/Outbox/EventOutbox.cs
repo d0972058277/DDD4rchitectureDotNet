@@ -4,12 +4,12 @@ using Architecture.Domain.EventBus.Outbox;
 
 namespace Architecture.Application.EventBus.Outbox
 {
-    public class OutboxEventPublisher : IEventPublisher
+    public class EventOutbox : IEventOutbox
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IIntegrationEventRepository _repository;
 
-        public OutboxEventPublisher(IUnitOfWork unitOfWork, IIntegrationEventRepository repository)
+        public EventOutbox(IUnitOfWork unitOfWork, IIntegrationEventRepository repository)
         {
             _unitOfWork = unitOfWork;
             _repository = repository;
@@ -18,7 +18,7 @@ namespace Architecture.Application.EventBus.Outbox
         public Task PublishAsync<TIntegrationEvent>(TIntegrationEvent integrationEvent, CancellationToken cancellationToken = default) where TIntegrationEvent : IIntegrationEvent
         {
             if (!_unitOfWork.HasActiveTransaction)
-                throw new InvalidOperationException($"{nameof(IEventPublisher)} 的實作類 {nameof(OutboxEventPublisher)} 應該要在 IUnitOfWork 有活躍的 Transaction 才可進行整合事件發佈");
+                throw new InvalidOperationException($"{nameof(IEventOutbox)} 的實作類 {nameof(EventOutbox)} 應該要在 IUnitOfWork 有活躍的 Transaction 才可進行整合事件發佈");
 
             var transactionId = _unitOfWork.TransactionId!.Value;
             var payload = Payload.Serialize(integrationEvent);
