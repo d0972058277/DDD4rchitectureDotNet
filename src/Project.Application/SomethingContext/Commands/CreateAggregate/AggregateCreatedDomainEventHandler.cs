@@ -7,16 +7,16 @@ namespace Project.Application.SomethingContext.Commands.CreateAggregate;
 
 public class AggregateCreatedDomainEventHandler : IDomainEventHandler<AggregateCreatedDomainEvent>
 {
-    private readonly IEventOutbox _outbox;
+    private readonly IEventOutbox _eventOutbox;
 
-    public AggregateCreatedDomainEventHandler(IEventOutbox outbox)
+    public AggregateCreatedDomainEventHandler(IEventOutbox eventOutbox)
     {
-        _outbox = outbox;
+        _eventOutbox = eventOutbox;
     }
 
     public Task Handle(AggregateCreatedDomainEvent notification, CancellationToken cancellationToken)
     {
         var integrationEvent = new AggregateCreatedIntegrationEvent(notification.SomethingAggregateId);
-        return _outbox.SendAsync(integrationEvent, cancellationToken);
+        return _eventOutbox.PublishAsync(integrationEvent, cancellationToken);
     }
 }

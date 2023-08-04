@@ -3,11 +3,12 @@ using Architecture.Application;
 using Architecture.Application.CQRS;
 using Architecture.Application.CQRS.Behavior;
 using Architecture.Application.EventBus;
+using Architecture.Application.EventBus.Inbox;
 using Architecture.Application.EventBus.Outbox;
 using Architecture.Application.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace Project.Infrastructure;
 
@@ -23,7 +24,7 @@ public static class ServiceCollectionExtensions
         services.AddAllTypes<IRepository>(ServiceLifetime.Transient);
 
         services.AddTransient<IEventMediator, EventMediator>();
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
+
 
         services.AddMediatR(cfg =>
         {
@@ -36,6 +37,22 @@ public static class ServiceCollectionExtensions
         services.AddDbContext<ReadOnlyProjectDbContext>(readOnlyDbContextOptionsAction);
 
         services.AddTransient<IEventOutbox, EventOutbox>();
+        services.AddTransient<IEventInbox, EventInbox>();
+        services.AddTransient<IEventPublisher, Masstransit.EventPublisher>();
+        services.AddTransient<IEventConsumer, EventConsumer>();
+        services.AddSingleton<IOutboxProcessor, OutboxProcessor>();
+        services.AddSingleton<IInboxProcessor, InboxProcessor>();
+
+        services.AddScoped<IUnitOfWork>(sp =>
+        {
+            var dbContext = sp.GetRequiredService<ProjectDbContext>();
+            var outboxProcessor = sp.GetRequiredService<IOutboxProcessor>();
+            var logger = sp.GetRequiredService<ILogger<UnitOfWorkOutboxDecorator>>();
+
+            IUnitOfWork unitOfWork = new UnitOfWork(dbContext);
+            unitOfWork = new UnitOfWorkOutboxDecorator(unitOfWork, outboxProcessor, logger);
+            return unitOfWork;
+        });
 
         return services;
     }

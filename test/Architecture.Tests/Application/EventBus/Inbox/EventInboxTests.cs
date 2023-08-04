@@ -12,12 +12,12 @@ public class EventInboxTests
         // Given
         var repository = new Mock<IIntegrationEventRepository>();
 
-        var eventInbox = new EventInbox(repository.Object);
+        var inboxEventConsumer = new EventInbox(repository.Object);
         var somethingIntegrationEvent = new SomethingIntegrationEvent();
         var payload = Payload.Serialize(somethingIntegrationEvent);
 
         // When
-        await eventInbox.ReceiveAsync(somethingIntegrationEvent);
+        await inboxEventConsumer.ConsumeAsync(somethingIntegrationEvent);
 
         // Then
         repository.Verify(m => m.AddAsync(It.Is<IntegrationEventEntry>(e => e.GetPayload() == payload), default), Times.Once());

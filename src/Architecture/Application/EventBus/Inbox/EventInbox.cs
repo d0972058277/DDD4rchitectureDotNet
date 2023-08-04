@@ -12,7 +12,7 @@ public class EventInbox : IEventInbox
         _repository = repository;
     }
 
-    public Task ReceiveAsync<T>(T integrationEvent, CancellationToken cancellationToken = default) where T : IIntegrationEvent
+    public Task ConsumeAsync<TIntegrationEvent>(TIntegrationEvent integrationEvent, CancellationToken cancellationToken = default) where TIntegrationEvent : IIntegrationEvent
     {
         var payload = Payload.Serialize(integrationEvent);
         var entry = IntegrationEventEntry.Receive(payload);

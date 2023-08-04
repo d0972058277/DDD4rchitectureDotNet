@@ -15,13 +15,13 @@ namespace Architecture.Application.EventBus.Outbox
             _repository = repository;
         }
 
-        public Task SendAsync<T>(T @event, CancellationToken cancellationToken = default) where T : IIntegrationEvent
+        public Task PublishAsync<TIntegrationEvent>(TIntegrationEvent integrationEvent, CancellationToken cancellationToken = default) where TIntegrationEvent : IIntegrationEvent
         {
             if (!_unitOfWork.HasActiveTransaction)
-                throw new InvalidOperationException("IEventBus 的實作類 TransactionalEventBus 應該要在 IUnitOfWork 有活躍的 Transaction 才可進行整合事件發佈");
+                throw new InvalidOperationException($"{nameof(IEventOutbox)} 的實作類 {nameof(EventOutbox)} 應該要在 IUnitOfWork 有活躍的 Transaction 才可進行整合事件發佈");
 
             var transactionId = _unitOfWork.TransactionId!.Value;
-            var payload = Payload.Serialize(@event);
+            var payload = Payload.Serialize(integrationEvent);
             var entry = IntegrationEventEntry.Raise(payload, transactionId);
             return _repository.AddAsync(entry, cancellationToken);
         }

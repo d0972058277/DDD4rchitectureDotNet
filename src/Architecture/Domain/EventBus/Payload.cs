@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using CSharpFunctionalExtensions;
 
@@ -30,7 +31,7 @@ public class Payload : ValueObject
     {
         var typeName = integrationEvent.GetType().FullName;
         if (string.IsNullOrWhiteSpace(typeName))
-            throw new ArgumentException("無法取得 IntegrationEvent 參數的 FullName ，無法序列化。");
+            throw new ArgumentNullException($"無法取得 IntegrationEvent {integrationEvent.GetType().Name} 參數的 FullName ，無法序列化。");
 
         var id = integrationEvent.Id;
         var creationTimestamp = integrationEvent.CreationTimestamp;
@@ -46,14 +47,46 @@ public class Payload : ValueObject
 
     public IIntegrationEvent Deserialize()
     {
-        // TODO: 反射會有效能上的問題，這邊需要優化效能
-        var type = AppDomain.CurrentDomain.GetAssemblies()
-            .SelectMany(assembly => assembly.GetLoadableTypes())
-            .Where(t => typeof(IIntegrationEvent).IsAssignableFrom(t) && !t.IsAbstract && t.IsClass)
-            .ToList()
-            .Find(t => t.FullName == TypeName)!;
+        var type = RuntimeTypeNameCache.Instance.GetTypeOrThrow(TypeName);
+        return (JsonSerializer.Deserialize(Content, type) as IIntegrationEvent)!;
+    }
 
-        var integrationEvent = (JsonSerializer.Deserialize(Content, type) as IIntegrationEvent)!;
-        return integrationEvent;
+    class RuntimeTypeNameCache
+    {
+        private static readonly Lazy<RuntimeTypeNameCache> _lazyInstance =
+            new(() => new RuntimeTypeNameCache(), LazyThreadSafetyMode.ExecutionAndPublication);
+
+        private readonly ConcurrentDictionary<string, Type> _typeCache = new();
+
+        private RuntimeTypeNameCache()
+        {
+            LoadTypesIntoCache();
+        }
+
+        public static RuntimeTypeNameCache Instance => _lazyInstance.Value;
+
+        public Type GetTypeOrThrow(string typeName)
+        {
+            if (_typeCache.TryGetValue(typeName, out var type))
+            {
+                return type;
+            }
+            else
+            {
+                throw new InvalidOperationException($"Runtime 中沒有對應 {typeName} 的物件類型，無法進行 IntegrationEvent 的反序列化。");
+            }
+        }
+
+        private void LoadTypesIntoCache()
+        {
+            var integrationEventTypes = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetLoadableTypes())
+                .Where(t => typeof(IIntegrationEvent).IsAssignableFrom(t) && !t.IsAbstract && t.IsClass);
+
+            foreach (var type in integrationEventTypes)
+            {
+                _typeCache[type.FullName!] = type;
+            }
+        }
     }
 }
