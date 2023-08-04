@@ -19,6 +19,9 @@ jobs:
     
     - name: Run the Mysql Docker image
       run: docker run -itd --name mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root mysql:5.7
+
+    - name: Run the RabbitMq Docker image
+      run: docker run -d --name rabbitmq -p 15672:15672 -p 5672:5672 rabbitmq:management
       
     - name: Setup .NET
       uses: actions/setup-dotnet@v3

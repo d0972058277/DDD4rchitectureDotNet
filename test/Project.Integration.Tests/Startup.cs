@@ -1,11 +1,15 @@
 using Architecture;
+using Architecture.Domain.EventBus;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Project.Application;
 using Project.Infrastructure;
 using Project.Infrastructure.DbCommandInterceptors;
+using Project.Infrastructure.Masstransit;
 using Serilog;
 using Serilog.Exceptions;
 using Serilog.Exceptions.Core;
@@ -33,6 +37,31 @@ public class Startup
         {
             b.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
             b.AddInterceptors(new List<IInterceptor>() { new RemoveLastOrderByInterceptor() });
+        });
+
+        services.AddMassTransitTestHarness(x =>
+        {
+            AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetLoadableTypes())
+                .Where(t => typeof(IIntegrationEvent).IsAssignableFrom(t) && !t.IsAbstract && t.IsClass)
+                .ToList()
+                .ForEach(integrationEventType =>
+                {
+                    x.AddConsumer(typeof(GenericConsumer<>).MakeGenericType(integrationEventType));
+                });
+
+            x.UsingRabbitMq((context, cfg) =>
+            {
+                cfg.Host("localhost", "/", h =>
+                {
+                    h.Username("guest");
+                    h.Password("guest");
+                });
+
+                cfg.ConfigureEndpoints(context);
+                cfg.Publish<IIntegrationEvent>(c => c.Exclude = true);
+                cfg.Publish<IntegrationEventBase>(c => c.Exclude = true);
+            });
         });
     }
 

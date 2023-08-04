@@ -1,6 +1,7 @@
 using Architecture;
 using Architecture.Application.CQRS;
 using FluentAssertions;
+using MassTransit.Testing;
 using Microsoft.EntityFrameworkCore;
 using Project.Application.SomethingContext.Commands.CreateAggregate;
 using Project.Application.SomethingContext.IntegrationEvents;
@@ -16,12 +17,14 @@ public class CreateAggregateUseCase
     private readonly ProjectDbContext _dbContext;
     private readonly ReadOnlyProjectDbContext _readOnlyDbContext;
     private readonly IEventMediator _eventMediator;
+    private readonly ITestHarness _testHarness;
 
-    public CreateAggregateUseCase(ProjectDbContext dbContext, ReadOnlyProjectDbContext readOnlyDbContext, IEventMediator eventMediator)
+    public CreateAggregateUseCase(ProjectDbContext dbContext, ReadOnlyProjectDbContext readOnlyDbContext, IEventMediator eventMediator, ITestHarness testHarness)
     {
         _dbContext = dbContext;
         _readOnlyDbContext = readOnlyDbContext;
         _eventMediator = eventMediator;
+        _testHarness = testHarness;
     }
 
     [Fact]
@@ -51,9 +54,13 @@ public class CreateAggregateUseCase
         var integrationEventEntry = await _readOnlyDbContext.Outbox.SingleAsync();
         integrationEventEntry.GetPayload().Deserialize().As<AggregateCreatedIntegrationEvent>().SomethingAggregateId.Should().Be(something.Id);
 
-        // TODO: 驗證事件已發佈
+        await Task.Delay(1000);
 
-        // TODO: 驗證事件已消耗
+        // NOTE: 驗證事件已發佈
+        (await _testHarness.Published.Any<AggregateCreatedIntegrationEvent>(e => e.Context.Message.SomethingAggregateId == something.Id)).Should().BeTrue();
+
+        // NOTE: 驗證事件已消耗
+        (await _testHarness.Consumed.Any<AggregateCreatedIntegrationEvent>(e => e.Context.Message.SomethingAggregateId == something.Id)).Should().BeTrue();
     }
 
     private static List<SomethingValueObject> GetSomethingValueObjects()

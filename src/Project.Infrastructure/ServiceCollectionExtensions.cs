@@ -3,6 +3,7 @@ using Architecture.Application;
 using Architecture.Application.CQRS;
 using Architecture.Application.CQRS.Behavior;
 using Architecture.Application.EventBus;
+using Architecture.Application.EventBus.Inbox;
 using Architecture.Application.EventBus.Outbox;
 using Architecture.Application.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
@@ -36,8 +37,11 @@ public static class ServiceCollectionExtensions
         services.AddDbContext<ReadOnlyProjectDbContext>(readOnlyDbContextOptionsAction);
 
         services.AddTransient<IEventOutbox, EventOutbox>();
-        services.AddTransient<IEventPublisher, EventPublisher>();
+        services.AddTransient<IEventInbox, EventInbox>();
+        services.AddTransient<IEventPublisher, Masstransit.EventPublisher>();
+        services.AddTransient<IEventConsumer, EventConsumer>();
         services.AddSingleton<IOutboxProcessor, OutboxProcessor>();
+        services.AddSingleton<IInboxProcessor, InboxProcessor>();
 
         services.AddScoped<IUnitOfWork>(sp =>
         {

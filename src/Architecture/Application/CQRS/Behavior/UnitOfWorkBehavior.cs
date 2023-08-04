@@ -51,7 +51,7 @@ namespace Architecture.Application.CQRS.Behavior
             await _unitOfWork.BeginTransactionAsync(cancellationToken);
             var transactionId = _unitOfWork.TransactionId!.Value;
 
-            _logger.LogInformation("----- Begin transaction {TransactionId} for {CommandName} ({@Command})", transactionId, typeName, request);
+            _logger.LogInformation("----- Transaction has began {TransactionId} for {CommandName} ({@Command})", transactionId, typeName, request);
 
             var response = await next();
 
@@ -60,7 +60,7 @@ namespace Architecture.Application.CQRS.Behavior
             await _unitOfWork.CommitAsync(cancellationToken);
             sw.Stop();
 
-            _logger.LogInformation("----- Commit transaction {TransactionId} for {CommandName} costs {ElapsedMilliseconds}ms", transactionId, typeName, sw.ElapsedMilliseconds);
+            _logger.LogInformation("----- Transaction has committed {TransactionId} for {CommandName} costs {ElapsedMilliseconds}ms", transactionId, typeName, sw.ElapsedMilliseconds);
 
             return response;
         }

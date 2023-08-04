@@ -17,7 +17,10 @@ public class EventConsumer : IEventConsumer
     public Task ConsumeAsync<TIntegrationEvent>(TIntegrationEvent integrationEvent, CancellationToken cancellationToken = default) where TIntegrationEvent : IIntegrationEvent
     {
         var typeName = integrationEvent.GetGenericTypeName();
-        _logger.LogInformation("Consume {IntegrationEventTypeName} {@IntegrationEvent}", typeName, integrationEvent);
+        _logger.LogInformation("<<<<< Consume {IntegrationEventTypeName} {@IntegrationEvent}", typeName, integrationEvent);
+
+        // TODO: 有沒有必要創建 IntegrationEventHandler 與其 Mediator ？或是直接透過 Integration.ToCommand() 做使用？
+
         return Task.CompletedTask;
     }
 }
