@@ -6,6 +6,8 @@ using Architecture.Application.EventBus;
 using Architecture.Application.EventBus.Inbox;
 using Architecture.Application.EventBus.Outbox;
 using Architecture.Application.UnitOfWork;
+using CorrelationId;
+using CorrelationId.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -21,7 +23,14 @@ public static class ServiceCollectionExtensions
         Action<IServiceProvider, DbContextOptionsBuilder> readOnlyDbContextOptionsAction
     )
     {
+        services.AddDefaultCorrelationId(options =>
+        {
+            options.AddToLoggingScope = true;
+            options.RequestHeader = CorrelationIdOptions.DefaultHeader.ToLower();
+        });
+
         services.AddAllTypes<IRepository>(ServiceLifetime.Transient);
+        services.AddAllTypes<IApplicationService>(ServiceLifetime.Transient);
 
         services.AddTransient<IEventMediator, EventMediator>();
 
