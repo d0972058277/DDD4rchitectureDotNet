@@ -33,6 +33,7 @@ public class UnitOfWorkOutboxDecorator : IUnitOfWork
 
         await _unitOfWork.CommitAsync(cancellationToken);
 
+        // TODO: 這邊應該使用像是 Hangfire, Quartz.Net, Hosted Services 之類的進行非同步處理
         await _outboxWorker.ProcessAsync(transactionId, cancellationToken);
         _logger.LogInformation("+++++ Outbox process integration events for {TransactionId}", transactionId);
     }

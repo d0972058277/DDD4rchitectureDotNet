@@ -22,7 +22,9 @@ public class GenericConsumer<T> : IConsumer<T> where T : class, IIntegrationEven
     {
         var integrationEvent = context.Message;
         await _inbox.ConsumeAsync(integrationEvent, context.CancellationToken);
-        _ = _inboxProcessor.ProcessAsync(integrationEvent.Id);
+
+        // TODO: 這邊應該使用像是 Hangfire, Quartz.Net, Hosted Services 之類的進行非同步處理
+        await _inboxProcessor.ProcessAsync(integrationEvent.Id);
         _logger.LogInformation("+++++ Inbox process integration event for {IntegrationEventId}", integrationEvent.Id);
     }
 }
