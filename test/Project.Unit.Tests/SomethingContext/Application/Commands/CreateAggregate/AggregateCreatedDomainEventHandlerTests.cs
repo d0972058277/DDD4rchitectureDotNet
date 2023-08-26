@@ -1,6 +1,6 @@
 using Architecture.Shell.EventBus.Outbox;
 using Moq;
-using Project.Application.SomethingContext.Commands.CreateAggregate;
+using Project.Application.SomethingContext.DomainEventHandlers;
 using Project.Application.SomethingContext.IntegrationEvents;
 using Project.Domain.SomethingContext.Events;
 
