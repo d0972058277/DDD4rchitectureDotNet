@@ -3,7 +3,7 @@ using Architecture.Shell.EventBus.Outbox;
 using Project.Application.SomethingContext.IntegrationEvents;
 using Project.Domain.SomethingContext.Events;
 
-namespace Project.Application.SomethingContext.Commands.CreateAggregate;
+namespace Project.Application.SomethingContext.DomainEventHandlers;
 
 public class AggregateCreatedDomainEventHandler : IDomainEventHandler<AggregateCreatedDomainEvent>
 {
