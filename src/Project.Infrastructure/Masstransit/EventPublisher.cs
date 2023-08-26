@@ -1,6 +1,7 @@
 using Architecture;
-using Architecture.Application.EventBus;
-using Architecture.Domain.EventBus;
+using Architecture.Shell.Correlation;
+using Architecture.Shell.EventBus;
+using Architecture.Shell.EventBus.Outbox;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 
@@ -9,11 +10,13 @@ namespace Project.Infrastructure.Masstransit;
 public class EventPublisher : IEventPublisher
 {
     private readonly IPublishEndpoint _publishEndpoint;
+    private readonly ICorrelationService _correlationService;
     private readonly ILogger<EventPublisher> _logger;
 
-    public EventPublisher(IPublishEndpoint publishEndpoint, ILogger<EventPublisher> logger)
+    public EventPublisher(IPublishEndpoint publishEndpoint, ICorrelationService correlationService, ILogger<EventPublisher> logger)
     {
         _publishEndpoint = publishEndpoint;
+        _correlationService = correlationService;
         _logger = logger;
     }
 
@@ -21,7 +24,6 @@ public class EventPublisher : IEventPublisher
     {
         var typeName = integrationEvent.GetGenericTypeName();
         _logger.LogInformation(">>>>> Publish {IntegrationEventTypeName} {@IntegrationEvent}", typeName, integrationEvent);
-        // TODO: 要加入 CorrelationId 的動作
-        return _publishEndpoint.Publish(integrationEvent, cancellationToken);
+        return _publishEndpoint.Publish(integrationEvent, ctx => ctx.CorrelationId = _correlationService.CorrelationId, cancellationToken);
     }
 }

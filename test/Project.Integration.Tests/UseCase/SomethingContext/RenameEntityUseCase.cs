@@ -1,5 +1,6 @@
 using Architecture;
-using Architecture.Application.CQRS;
+using Architecture.Core;
+using Architecture.Shell.CQRS;
 using FluentAssertions;
 using Project.Application.SomethingContext.Commands.RenameEntity;
 using Project.Application.SomethingContext.Queries.GetSomething;
@@ -12,12 +13,12 @@ namespace Project.Integration.Tests.UseCase.SomethingContext;
 public class RenameEntityUseCase
 {
     private readonly ProjectDbContext _dbContext;
-    private readonly IEventMediator _eventMediator;
+    private readonly IMediator _mediator;
 
-    public RenameEntityUseCase(ProjectDbContext dbContext, IEventMediator eventMediator)
+    public RenameEntityUseCase(ProjectDbContext dbContext, IMediator mediator)
     {
         _dbContext = dbContext;
-        _eventMediator = eventMediator;
+        _mediator = mediator;
     }
 
     [Fact]
@@ -30,11 +31,11 @@ public class RenameEntityUseCase
         // Given
         var entityName = "entityName";
         var command = new RenameEntityCommand(aggregate.Id, entityName);
-        await _eventMediator.ExecuteAsync(command);
+        await _mediator.ExecuteAsync(command);
 
         // When
         var query = new GetSomethingQuery(aggregate.Id);
-        var something = await _eventMediator.DispatchAsync(query);
+        var something = await _mediator.FetchAsync(query);
 
         // Then
         something.EntityName.Should().Be(entityName);

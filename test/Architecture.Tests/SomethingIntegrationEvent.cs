@@ -1,4 +1,5 @@
-using Architecture.Domain.EventBus;
+using Architecture.Core;
+using Architecture.Shell.EventBus;
 
 namespace Architecture.Tests;
 

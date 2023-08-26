@@ -1,5 +1,5 @@
-using Architecture.Application.EventBus;
-using Architecture.Domain;
+using Architecture.Core;
+using Architecture.Shell.EventBus.Outbox;
 using Project.Application.SomethingContext.IntegrationEvents;
 using Project.Domain.SomethingContext.Events;
 
@@ -7,16 +7,16 @@ namespace Project.Application.SomethingContext.Commands.CreateAggregate;
 
 public class AggregateCreatedDomainEventHandler : IDomainEventHandler<AggregateCreatedDomainEvent>
 {
-    private readonly IEventOutbox _eventOutbox;
+    private readonly IOutbox _outbox;
 
-    public AggregateCreatedDomainEventHandler(IEventOutbox eventOutbox)
+    public AggregateCreatedDomainEventHandler(IOutbox outbox)
     {
-        _eventOutbox = eventOutbox;
+        _outbox = outbox;
     }
 
     public Task Handle(AggregateCreatedDomainEvent notification, CancellationToken cancellationToken)
     {
         var integrationEvent = new AggregateCreatedIntegrationEvent(notification.SomethingAggregateId);
-        return _eventOutbox.PublishAsync(integrationEvent, cancellationToken);
+        return _outbox.PublishAsync(integrationEvent, cancellationToken);
     }
 }

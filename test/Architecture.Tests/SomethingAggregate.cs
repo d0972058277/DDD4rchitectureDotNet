@@ -1,4 +1,4 @@
-using Architecture.Domain;
+using Architecture.Core;
 
 namespace Architecture.Tests;
 

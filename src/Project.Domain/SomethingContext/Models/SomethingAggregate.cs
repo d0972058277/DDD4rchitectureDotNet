@@ -1,4 +1,4 @@
-using Architecture.Domain;
+using Architecture.Core;
 using Project.Domain.SomethingContext.Events;
 
 namespace Project.Domain.SomethingContext.Models;

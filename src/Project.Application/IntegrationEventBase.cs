@@ -1,5 +1,6 @@
 using Architecture;
-using Architecture.Domain.EventBus;
+using Architecture.Core;
+using Architecture.Shell.EventBus;
 
 namespace Project.Application;
 

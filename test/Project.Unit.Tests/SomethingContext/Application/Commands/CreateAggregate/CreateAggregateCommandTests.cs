@@ -1,5 +1,5 @@
 using Architecture;
-using Architecture.Application.CQRS;
+using Architecture.Shell.CQRS;
 using Moq;
 using Project.Application.SomethingContext.Commands.CreateAggregate;
 using Project.Application.SomethingContext.Repositories;
@@ -18,17 +18,17 @@ public class CreateAggregateCommandTests
         var valueObjects = GetSomethingValueObjects();
 
         var repository = new Mock<ISomethingRepository>();
-        var eventMediator = new Mock<IEventMediator>();
+        var mediator = new Mock<IMediator>();
 
         var command = new CreateAggregateCommand(entityName, valueObjects);
-        var handler = new CreateAggregateCommandHandler(repository.Object, eventMediator.Object);
+        var handler = new CreateAggregateCommandHandler(repository.Object, mediator.Object);
 
         // When
         var aggregateId = await handler.Handle(command, default);
 
         // Then
         repository.Verify(m => m.AddAsync(It.Is<SomethingAggregate>(a => a.Id == aggregateId), default), Times.Once());
-        eventMediator.Verify(m => m.PublishAsync(It.Is<AggregateCreatedDomainEvent>(e => e.SomethingAggregateId == aggregateId), default), Times.Once());
+        mediator.Verify(m => m.PublishAsync(It.Is<AggregateCreatedDomainEvent>(e => e.SomethingAggregateId == aggregateId), default), Times.Once());
     }
 
     private static List<SomethingValueObject> GetSomethingValueObjects()

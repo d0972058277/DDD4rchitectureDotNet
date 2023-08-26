@@ -1,4 +1,4 @@
-using Architecture.Application.CQRS;
+using Architecture.Shell.CQRS;
 using Project.Application.SomethingContext.Queries.GetSomething.Models;
 
 namespace Project.Application.SomethingContext.Queries.GetSomething;

@@ -1,4 +1,4 @@
-using Architecture.Application;
+using Architecture.Shell;
 using Project.Domain.SomethingContext.Models;
 
 namespace Project.Application.SomethingContext.Repositories;

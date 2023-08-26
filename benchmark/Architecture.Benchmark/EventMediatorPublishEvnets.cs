@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Reflection;
-using Architecture.Application.CQRS;
-using Architecture.Domain;
+using Architecture.Core;
+using Architecture.Shell.CQRS;
 using BenchmarkDotNet.Attributes;
 using Moq;
 
@@ -41,7 +41,7 @@ namespace Architecture.Benchmark
         [Benchmark]
         public async Task 不特別找出範型方法()
         {
-            var mediator = new Mock<IEventMediator>();
+            var mediator = new Mock<IMediator>();
             var events = GetDomainEvents();
 
             foreach (var e in events)
@@ -53,14 +53,14 @@ namespace Architecture.Benchmark
         [Benchmark]
         public async Task 特別找出範型方法()
         {
-            var mediator = new Mock<IEventMediator>();
+            var mediator = new Mock<IMediator>();
             var events = GetDomainEvents();
 
             foreach (var e in events)
             {
                 var domainEventType = e.GetType();
-                var publishMethod = typeof(IEventMediator)
-                    .GetMethod(nameof(IEventMediator.PublishAsync))!
+                var publishMethod = typeof(IMediator)
+                    .GetMethod(nameof(IMediator.PublishAsync))!
                     .MakeGenericMethod(domainEventType);
 
                 await (Task)publishMethod.Invoke(mediator.Object, new object[] { e, default(CancellationToken) })!;
@@ -72,7 +72,7 @@ namespace Architecture.Benchmark
         [Benchmark]
         public async Task 特別找出範型方法_且快取方法()
         {
-            var mediator = new Mock<IEventMediator>();
+            var mediator = new Mock<IMediator>();
             var events = GetDomainEvents();
 
             foreach (var e in events)
@@ -85,8 +85,8 @@ namespace Architecture.Benchmark
 
         private static MethodInfo GetPublishMethod(Type domainEventType)
         {
-            var publishMethod = typeof(IEventMediator)
-                .GetMethod(nameof(IEventMediator.PublishAsync))!
+            var publishMethod = typeof(IMediator)
+                .GetMethod(nameof(IMediator.PublishAsync))!
                 .MakeGenericMethod(domainEventType);
             return publishMethod;
         }
