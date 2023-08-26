@@ -1,7 +1,7 @@
 using Architecture;
-using Architecture.Application.EventBus;
-using Architecture.Application.Services.Correlation;
-using Architecture.Domain.EventBus;
+using Architecture.Shell.Correlation;
+using Architecture.Shell.EventBus;
+using Architecture.Shell.EventBus.Outbox;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 

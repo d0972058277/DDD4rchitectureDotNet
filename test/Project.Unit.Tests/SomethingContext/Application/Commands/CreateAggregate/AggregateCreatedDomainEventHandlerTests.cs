@@ -1,4 +1,4 @@
-using Architecture.Application.EventBus;
+using Architecture.Shell.EventBus.Outbox;
 using Moq;
 using Project.Application.SomethingContext.Commands.CreateAggregate;
 using Project.Application.SomethingContext.IntegrationEvents;
@@ -13,15 +13,15 @@ public class AggregateCreatedDomainEventHandlerTests
     {
         // Given
         var id = Guid.NewGuid();
-        var eventOutbox = new Mock<IEventOutbox>();
+        var outbox = new Mock<IOutbox>();
 
         var domainEvent = new AggregateCreatedDomainEvent(id);
-        var handler = new AggregateCreatedDomainEventHandler(eventOutbox.Object);
+        var handler = new AggregateCreatedDomainEventHandler(outbox.Object);
 
         // When
         await handler.Handle(domainEvent, default);
 
         // Then
-        eventOutbox.Verify(m => m.PublishAsync(It.Is<AggregateCreatedIntegrationEvent>(e => e.SomethingAggregateId == domainEvent.SomethingAggregateId), default), Times.Once());
+        outbox.Verify(m => m.PublishAsync(It.Is<AggregateCreatedIntegrationEvent>(e => e.SomethingAggregateId == domainEvent.SomethingAggregateId), default), Times.Once());
     }
 }

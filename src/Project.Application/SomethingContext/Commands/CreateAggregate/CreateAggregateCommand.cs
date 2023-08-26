@@ -1,4 +1,4 @@
-using Architecture.Application.CQRS;
+using Architecture.Shell.CQRS;
 using Project.Domain.SomethingContext.Models;
 
 namespace Project.Application.SomethingContext.Commands.CreateAggregate;

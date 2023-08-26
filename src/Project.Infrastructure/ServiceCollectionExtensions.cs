@@ -1,11 +1,9 @@
 using System.Reflection;
-using Architecture.Application;
-using Architecture.Application.CQRS;
-using Architecture.Application.CQRS.Behavior;
-using Architecture.Application.EventBus;
-using Architecture.Application.EventBus.Inbox;
-using Architecture.Application.EventBus.Outbox;
-using Architecture.Application.UnitOfWork;
+using Architecture.Shell;
+using Architecture.Shell.CQRS;
+using Architecture.Shell.CQRS.Behavior;
+using Architecture.Shell.EventBus.Inbox;
+using Architecture.Shell.EventBus.Outbox;
 using CorrelationId;
 using CorrelationId.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
@@ -32,7 +30,7 @@ public static class ServiceCollectionExtensions
         services.AddAllTypes<IRepository>(ServiceLifetime.Transient);
         services.AddAllTypes<IApplicationService>(ServiceLifetime.Transient);
 
-        services.AddTransient<IEventMediator, EventMediator>();
+        services.AddTransient<IMediator, Mediator>();
 
 
         services.AddMediatR(cfg =>
@@ -45,21 +43,21 @@ public static class ServiceCollectionExtensions
         services.AddDbContext<ProjectDbContext>(transationalDbContextOptionsAction);
         services.AddDbContext<ReadOnlyProjectDbContext>(readOnlyDbContextOptionsAction);
 
-        services.AddTransient<IEventOutbox, EventOutbox>();
-        services.AddTransient<IEventInbox, EventInbox>();
+        services.AddTransient<IOutbox, Outbox>();
+        services.AddTransient<IInbox, Inbox>();
         services.AddTransient<IEventPublisher, Masstransit.EventPublisher>();
         services.AddTransient<IEventConsumer, EventConsumer>();
-        services.AddSingleton<IOutboxProcessor, OutboxProcessor>();
-        services.AddSingleton<IInboxProcessor, InboxProcessor>();
+        services.AddSingleton<IOutboxWorker, OutboxWorker>();
+        services.AddSingleton<IInboxWorker, InboxWorker>();
 
         services.AddScoped<IUnitOfWork>(sp =>
         {
             var dbContext = sp.GetRequiredService<ProjectDbContext>();
-            var outboxProcessor = sp.GetRequiredService<IOutboxProcessor>();
+            var outboxWorker = sp.GetRequiredService<IOutboxWorker>();
             var logger = sp.GetRequiredService<ILogger<UnitOfWorkOutboxDecorator>>();
 
             IUnitOfWork unitOfWork = new UnitOfWork(dbContext);
-            unitOfWork = new UnitOfWorkOutboxDecorator(unitOfWork, outboxProcessor, logger);
+            unitOfWork = new UnitOfWorkOutboxDecorator(unitOfWork, outboxWorker, logger);
             return unitOfWork;
         });
 

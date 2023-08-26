@@ -11,16 +11,16 @@ public class ProjectDbContext : DbContext
 
     public DbSet<SomethingAggregate> SomethingAggregates => Set<SomethingAggregate>();
 
-    public DbSet<Architecture.Domain.EventBus.Inbox.IntegrationEventEntry> Inbox => Set<Architecture.Domain.EventBus.Inbox.IntegrationEventEntry>();
+    public DbSet<Architecture.Shell.EventBus.Inbox.IntegrationEventEntity> Inbox => Set<Architecture.Shell.EventBus.Inbox.IntegrationEventEntity>();
 
-    public DbSet<Architecture.Domain.EventBus.Outbox.IntegrationEventEntry> Outbox => Set<Architecture.Domain.EventBus.Outbox.IntegrationEventEntry>();
+    public DbSet<Architecture.Shell.EventBus.Outbox.IntegrationEventEntity> Outbox => Set<Architecture.Shell.EventBus.Outbox.IntegrationEventEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.ApplyConfiguration(new SomethingAggregateTypeConfiguration());
-        modelBuilder.ApplyConfiguration(new EventBusContext.Inbox.EntityConfigurations.IntegrationEventEntryTypeConfiguration());
-        modelBuilder.ApplyConfiguration(new EventBusContext.Outbox.EntityConfigurations.IntegrationEventEntryTypeConfiguration());
+        modelBuilder.ApplyConfiguration(new EventBusContext.Inbox.EntityConfigurations.IntegrationEventEntityTypeConfiguration());
+        modelBuilder.ApplyConfiguration(new EventBusContext.Outbox.EntityConfigurations.IntegrationEventEntityTypeConfiguration());
     }
 }

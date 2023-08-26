@@ -1,9 +1,9 @@
-using Architecture.Domain.EventBus.Inbox;
+using Architecture.Shell.EventBus.Inbox;
 using CSharpFunctionalExtensions;
 
 namespace Project.Infrastructure.EventBusContext.Inbox.Repositories;
 
-public class IntegrationEventRepository : Architecture.Application.EventBus.Inbox.IIntegrationEventRepository
+public class IntegrationEventRepository : IIntegrationEventRepository
 {
     private readonly ProjectDbContext _dbContext;
 
@@ -12,19 +12,19 @@ public class IntegrationEventRepository : Architecture.Application.EventBus.Inbo
         _dbContext = dbContext;
     }
 
-    public Task AddAsync(IntegrationEventEntry integrationEventEntry, CancellationToken cancellationToken = default)
+    public Task AddAsync(IntegrationEventEntity IntegrationEventEntity, CancellationToken cancellationToken = default)
     {
-        _dbContext.Inbox.Add(integrationEventEntry);
+        _dbContext.Inbox.Add(IntegrationEventEntity);
         return _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<Maybe<IntegrationEventEntry>> FindAsync(Guid integrationEventId, CancellationToken cancellationToken = default)
+    public async Task<Maybe<IntegrationEventEntity>> FindAsync(Guid integrationEventId, CancellationToken cancellationToken = default)
     {
         var entry = await _dbContext.Inbox.FindAsync(new object[] { integrationEventId }, cancellationToken);
-        return entry ?? Maybe<IntegrationEventEntry>.None;
+        return entry ?? Maybe<IntegrationEventEntity>.None;
     }
 
-    public Task SaveAsync(IntegrationEventEntry integrationEventEntry, CancellationToken cancellationToken = default)
+    public Task SaveAsync(IntegrationEventEntity IntegrationEventEntity, CancellationToken cancellationToken = default)
     {
         return _dbContext.SaveChangesAsync(cancellationToken);
     }

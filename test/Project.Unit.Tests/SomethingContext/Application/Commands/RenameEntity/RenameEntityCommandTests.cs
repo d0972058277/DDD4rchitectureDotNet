@@ -1,5 +1,6 @@
 using Architecture;
-using Architecture.Application.CQRS;
+using Architecture.Core;
+using Architecture.Shell.CQRS;
 using Moq;
 using Project.Application.SomethingContext.Commands.RenameEntity;
 using Project.Application.SomethingContext.Repositories;
@@ -19,17 +20,17 @@ public class RenameEntityCommandTests
 
         var repository = new Mock<ISomethingRepository>();
         repository.Setup(m => m.FindAsync(aggregate.Id, default)).ReturnsAsync(aggregate);
-        var eventMediator = new Mock<IEventMediator>();
+        var mediator = new Mock<IMediator>();
 
         var command = new RenameEntityCommand(aggregate.Id, entityName);
-        var handler = new RenameEntityCommandHandler(repository.Object, eventMediator.Object);
+        var handler = new RenameEntityCommandHandler(repository.Object, mediator.Object);
 
         // When
         await handler.Handle(command, default);
 
         // Then
         repository.Verify(m => m.SaveAsync(It.Is<SomethingAggregate>(a => a == aggregate), default), Times.Once());
-        eventMediator.Verify(m => m.PublishAsync(It.Is<EntityRenamedDomainEvent>(e => e.SomethingAggregateId == aggregate.Id), default), Times.Once());
+        mediator.Verify(m => m.PublishAsync(It.Is<EntityRenamedDomainEvent>(e => e.SomethingAggregateId == aggregate.Id), default), Times.Once());
     }
 
     private static SomethingAggregate GetSomethingAggregate()

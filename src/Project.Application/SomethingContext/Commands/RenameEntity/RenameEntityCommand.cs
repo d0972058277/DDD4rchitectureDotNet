@@ -1,4 +1,4 @@
-using Architecture.Application.CQRS;
+using Architecture.Shell.CQRS;
 
 namespace Project.Application.SomethingContext.Commands.RenameEntity;
 

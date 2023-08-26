@@ -1,5 +1,5 @@
 using Architecture;
-using Architecture.Application.CQRS;
+using Architecture.Shell.CQRS;
 using FluentAssertions;
 using MassTransit.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -16,14 +16,14 @@ public class CreateAggregateUseCase
 {
     private readonly ProjectDbContext _dbContext;
     private readonly ReadOnlyProjectDbContext _readOnlyDbContext;
-    private readonly IEventMediator _eventMediator;
+    private readonly IMediator _mediator;
     private readonly ITestHarness _testHarness;
 
-    public CreateAggregateUseCase(ProjectDbContext dbContext, ReadOnlyProjectDbContext readOnlyDbContext, IEventMediator eventMediator, ITestHarness testHarness)
+    public CreateAggregateUseCase(ProjectDbContext dbContext, ReadOnlyProjectDbContext readOnlyDbContext, IMediator mediator, ITestHarness testHarness)
     {
         _dbContext = dbContext;
         _readOnlyDbContext = readOnlyDbContext;
-        _eventMediator = eventMediator;
+        _mediator = mediator;
         _testHarness = testHarness;
     }
 
@@ -37,11 +37,11 @@ public class CreateAggregateUseCase
         var valueObjects = GetSomethingValueObjects();
 
         var command = new CreateAggregateCommand(entityName, valueObjects);
-        var aggregateId = await _eventMediator.ExecuteAsync(command);
+        var aggregateId = await _mediator.ExecuteAsync(command);
 
         // When
         var query = new GetSomethingQuery(aggregateId);
-        var something = await _eventMediator.DispatchAsync(query);
+        var something = await _mediator.FetchAsync(query);
 
         // Then
         something.Id.Should().Be(aggregateId);
@@ -51,8 +51,8 @@ public class CreateAggregateUseCase
         something.ValueObjects.Select(o => o.Boolean).Should().BeEquivalentTo(valueObjects.Select(o => o.Boolean));
         something.ValueObjects.Select(o => o.DateTime).Should().BeEquivalentTo(valueObjects.Select(o => o.DateTime));
 
-        var integrationEventEntry = await _readOnlyDbContext.Outbox.SingleAsync();
-        integrationEventEntry.GetPayload().Deserialize().As<AggregateCreatedIntegrationEvent>().SomethingAggregateId.Should().Be(something.Id);
+        var IntegrationEventEntity = await _readOnlyDbContext.Outbox.SingleAsync();
+        IntegrationEventEntity.GetPayload().Deserialize().As<AggregateCreatedIntegrationEvent>().SomethingAggregateId.Should().Be(something.Id);
 
         await Task.Delay(1000);
 

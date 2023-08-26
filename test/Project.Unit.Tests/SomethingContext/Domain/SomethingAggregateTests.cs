@@ -1,4 +1,5 @@
 using Architecture;
+using Architecture.Core;
 using FluentAssertions;
 using Project.Domain.SomethingContext.Events;
 using Project.Domain.SomethingContext.Models;

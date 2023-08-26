@@ -1,4 +1,4 @@
-using Architecture.Application.UnitOfWork;
+using Architecture.Shell;
 
 namespace Project.Infrastructure;
 

@@ -1,4 +1,4 @@
-using Architecture.Application.CQRS;
+using Architecture.Shell.CQRS;
 using Project.Application.SomethingContext.Repositories;
 
 namespace Project.Application.SomethingContext.Commands.RenameEntity;
@@ -6,12 +6,12 @@ namespace Project.Application.SomethingContext.Commands.RenameEntity;
 public class RenameEntityCommandHandler : ICommandHandler<RenameEntityCommand>
 {
     private readonly ISomethingRepository _repository;
-    private readonly IEventMediator _eventMediator;
+    private readonly IMediator _mediator;
 
-    public RenameEntityCommandHandler(ISomethingRepository repository, IEventMediator eventMediator)
+    public RenameEntityCommandHandler(ISomethingRepository repository, IMediator mediator)
     {
         _repository = repository;
-        _eventMediator = eventMediator;
+        _mediator = mediator;
     }
 
     public async Task Handle(RenameEntityCommand request, CancellationToken cancellationToken)
@@ -19,6 +19,6 @@ public class RenameEntityCommandHandler : ICommandHandler<RenameEntityCommand>
         var aggregate = await _repository.FindAsync(request.SomethingAggregateId, cancellationToken);
         aggregate.RenameEntity(request.EntityName);
         await _repository.SaveAsync(aggregate, cancellationToken);
-        await _eventMediator.PublishAndClearDomainEvents(aggregate, cancellationToken);
+        await _mediator.PublishAndClearDomainEvents(aggregate, cancellationToken);
     }
 }

@@ -19,7 +19,7 @@ namespace Project.Infrastructure.Migrations
                 .HasAnnotation("ProductVersion", "7.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            modelBuilder.Entity("Architecture.Domain.EventBus.Inbox.IntegrationEventEntry", b =>
+            modelBuilder.Entity("Architecture.Domain.EventBus.Inbox.IntegrationEventEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -48,7 +48,7 @@ namespace Project.Infrastructure.Migrations
                     b.ToTable("Inbox", (string)null);
                 });
 
-            modelBuilder.Entity("Architecture.Domain.EventBus.Outbox.IntegrationEventEntry", b =>
+            modelBuilder.Entity("Architecture.Domain.EventBus.Outbox.IntegrationEventEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()

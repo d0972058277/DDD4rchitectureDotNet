@@ -1,5 +1,5 @@
 using Architecture;
-using Architecture.Domain.EventBus;
+using Architecture.Shell.EventBus;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;

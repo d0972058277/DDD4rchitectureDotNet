@@ -1,4 +1,4 @@
-using Architecture;
+using Architecture.Core;
 using FluentAssertions;
 using Project.Domain.SomethingContext.Models;
 
