@@ -49,7 +49,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IInbox, Inbox>();
         services.AddTransient<IEventPublisher, MasstransitEventPublisher>();
         services.AddTransient<IEventConsumer, EventConsumer>();
-        services.AddSingleton<IOutboxWorker, OutboxWorker>();
+        services.AddScoped<IOutboxWorker, OutboxWorker>();
         services.AddSingleton<IInboxWorker, InboxWorker>();
 
         services.AddTransient<IFireAndForgetService, HangfireFireAndForgetService>();

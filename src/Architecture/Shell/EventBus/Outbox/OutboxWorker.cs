@@ -1,17 +1,17 @@
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Architecture.Shell.EventBus.Outbox;
 
 public class OutboxWorker : IOutboxWorker
 {
-    // TODO: 避免使用 Service Locator
-    private readonly IServiceProvider _serviceProvider;
+    private readonly IIntegrationEventRepository _repository;
+    private readonly IEventPublisher _eventPublisher;
     private readonly ILogger<OutboxWorker> _logger;
 
-    public OutboxWorker(IServiceProvider serviceProvider, ILogger<OutboxWorker> logger)
+    public OutboxWorker(IIntegrationEventRepository repository, IEventPublisher eventPublisher, ILogger<OutboxWorker> logger)
     {
-        _serviceProvider = serviceProvider;
+        _repository = repository;
+        _eventPublisher = eventPublisher;
         _logger = logger;
     }
 
@@ -19,30 +19,28 @@ public class OutboxWorker : IOutboxWorker
     {
         try
         {
-            using var scope = _serviceProvider.CreateScope();
-            var repository = scope.ServiceProvider.GetRequiredService<IIntegrationEventRepository>();
-            var eventPublisher = scope.ServiceProvider.GetRequiredService<IEventPublisher>();
-
-            var entries = await repository.FindAsync(transactionId, cancellationToken);
+            var entries = await _repository.FindAsync(transactionId, cancellationToken);
 
             if (!entries.Any())
                 return;
 
+            // TODO: 是否不再需要 Progress 的狀態？減少一次的 DbCommand
             foreach (var entry in entries)
                 entry.Progress();
-            await repository.SaveAsync(entries, cancellationToken);
+            await _repository.SaveAsync(entries, cancellationToken);
 
             var integrationEvents = entries.Select(e => e.GetPayload().Deserialize()).ToList();
             foreach (var integrationEvent in integrationEvents)
-                await eventPublisher.PublishAsync(integrationEvent, cancellationToken);
+                await _eventPublisher.PublishAsync(integrationEvent, cancellationToken);
 
             foreach (var entry in entries)
                 entry.Publish();
-            await repository.SaveAsync(entries, cancellationToken);
+            await _repository.SaveAsync(entries, cancellationToken);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "OutboxWorker caught an exception.");
+            throw;
         }
     }
 }
