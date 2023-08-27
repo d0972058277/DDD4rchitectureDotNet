@@ -9,7 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Project.Application;
 using Project.Infrastructure;
 using Project.Infrastructure.DbCommandInterceptors;
-using Project.Infrastructure.Masstransit;
+using Project.Infrastructure.EventBusContext.Inbox;
 using Serilog;
 using Serilog.Exceptions;
 using Serilog.Exceptions.Core;
@@ -47,7 +47,7 @@ public class Startup
                 .ToList()
                 .ForEach(integrationEventType =>
                 {
-                    x.AddConsumer(typeof(GenericConsumer<>).MakeGenericType(integrationEventType));
+                    x.AddConsumer(typeof(MasstransitGenericConsumer<>).MakeGenericType(integrationEventType));
                 });
 
             x.UsingRabbitMq((context, cfg) =>

@@ -18,17 +18,17 @@ public class UnitOfWorkOutboxDecoratorTests
             unitOfWork.Setup(m => m.HasActiveTransaction).Returns(true);
         });
 
-        var outboxWorker = new Mock<IOutboxWorker>();
-        var logger = new Mock<ILogger<UnitOfWorkOutboxDecorator>>();
+        var fireAndForgetService = new Mock<IFireAndForgetService>();
+        var logger = new Mock<ILogger<OutboxDecoratorUnitOfWork>>();
 
-        var decorator = new UnitOfWorkOutboxDecorator(unitOfWork.Object, outboxWorker.Object, logger.Object);
+        var decorator = new OutboxDecoratorUnitOfWork(unitOfWork.Object, fireAndForgetService.Object, logger.Object);
         await decorator.BeginTransactionAsync(default);
 
         // When
         await decorator.CommitAsync(default);
 
         // Then
-        outboxWorker.Verify(m => m.ProcessAsync(transactionId, default), Times.Once());
+        fireAndForgetService.Verify(m => m.ExecuteAsync(transactionId, default), Times.Once());
     }
 
     [Fact]
@@ -43,10 +43,10 @@ public class UnitOfWorkOutboxDecoratorTests
             unitOfWork.Setup(m => m.HasActiveTransaction).Returns(true);
         });
 
-        var outboxWorker = new Mock<IOutboxWorker>();
-        var logger = new Mock<ILogger<UnitOfWorkOutboxDecorator>>();
+        var fireAndForgetService = new Mock<IFireAndForgetService>();
+        var logger = new Mock<ILogger<OutboxDecoratorUnitOfWork>>();
 
-        var decorator = new UnitOfWorkOutboxDecorator(unitOfWork.Object, outboxWorker.Object, logger.Object);
+        var decorator = new OutboxDecoratorUnitOfWork(unitOfWork.Object, fireAndForgetService.Object, logger.Object);
 
         // When
         var func = () => decorator.CommitAsync(default);

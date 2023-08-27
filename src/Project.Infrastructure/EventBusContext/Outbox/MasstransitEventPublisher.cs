@@ -5,15 +5,15 @@ using Architecture.Shell.EventBus.Outbox;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 
-namespace Project.Infrastructure.Masstransit;
+namespace Project.Infrastructure.EventBusContext.Outbox;
 
-public class EventPublisher : IEventPublisher
+public class MasstransitEventPublisher : IEventPublisher
 {
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly ICorrelationService _correlationService;
-    private readonly ILogger<EventPublisher> _logger;
+    private readonly ILogger<MasstransitEventPublisher> _logger;
 
-    public EventPublisher(IPublishEndpoint publishEndpoint, ICorrelationService correlationService, ILogger<EventPublisher> logger)
+    public MasstransitEventPublisher(IPublishEndpoint publishEndpoint, ICorrelationService correlationService, ILogger<MasstransitEventPublisher> logger)
     {
         _publishEndpoint = publishEndpoint;
         _correlationService = correlationService;

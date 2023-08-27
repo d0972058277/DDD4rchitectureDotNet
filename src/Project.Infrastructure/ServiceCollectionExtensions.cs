@@ -6,9 +6,11 @@ using Architecture.Shell.EventBus.Inbox;
 using Architecture.Shell.EventBus.Outbox;
 using CorrelationId;
 using CorrelationId.DependencyInjection;
+using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Project.Infrastructure.EventBusContext.Outbox;
 
 namespace Project.Infrastructure;
 
@@ -45,20 +47,30 @@ public static class ServiceCollectionExtensions
 
         services.AddTransient<IOutbox, Outbox>();
         services.AddTransient<IInbox, Inbox>();
-        services.AddTransient<IEventPublisher, Masstransit.EventPublisher>();
+        services.AddTransient<IEventPublisher, MasstransitEventPublisher>();
         services.AddTransient<IEventConsumer, EventConsumer>();
         services.AddSingleton<IOutboxWorker, OutboxWorker>();
         services.AddSingleton<IInboxWorker, InboxWorker>();
 
+        services.AddTransient<IFireAndForgetService, HangfireFireAndForgetService>();
+
         services.AddScoped<IUnitOfWork>(sp =>
         {
             var dbContext = sp.GetRequiredService<ProjectDbContext>();
-            var outboxWorker = sp.GetRequiredService<IOutboxWorker>();
-            var logger = sp.GetRequiredService<ILogger<UnitOfWorkOutboxDecorator>>();
+            var fireAndForgetService = sp.GetRequiredService<IFireAndForgetService>();
+            var logger = sp.GetRequiredService<ILogger<OutboxDecoratorUnitOfWork>>();
 
             IUnitOfWork unitOfWork = new UnitOfWork(dbContext);
-            unitOfWork = new UnitOfWorkOutboxDecorator(unitOfWork, outboxWorker, logger);
+            unitOfWork = new OutboxDecoratorUnitOfWork(unitOfWork, fireAndForgetService, logger);
             return unitOfWork;
+        });
+
+        services.AddHangfire(config =>
+        {
+            config.UseInMemoryStorage();
+        }).AddHangfireServer(options =>
+        {
+
         });
 
         return services;

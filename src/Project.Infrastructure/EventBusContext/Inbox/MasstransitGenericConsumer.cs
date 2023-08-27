@@ -3,15 +3,15 @@ using Architecture.Shell.EventBus.Inbox;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 
-namespace Project.Infrastructure.Masstransit;
+namespace Project.Infrastructure.EventBusContext.Inbox;
 
-public class GenericConsumer<T> : IConsumer<T> where T : class, IIntegrationEvent
+public class MasstransitGenericConsumer<T> : IConsumer<T> where T : class, IIntegrationEvent
 {
     private readonly IInbox _inbox;
     private readonly IInboxWorker _inboxProcessor;
-    private readonly ILogger<GenericConsumer<T>> _logger;
+    private readonly ILogger<MasstransitGenericConsumer<T>> _logger;
 
-    public GenericConsumer(IInbox inbox, IInboxWorker inboxProcessor, ILogger<GenericConsumer<T>> logger)
+    public MasstransitGenericConsumer(IInbox inbox, IInboxWorker inboxProcessor, ILogger<MasstransitGenericConsumer<T>> logger)
     {
         _inbox = inbox;
         _inboxProcessor = inboxProcessor;
