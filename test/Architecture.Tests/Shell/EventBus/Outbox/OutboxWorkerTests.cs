@@ -33,7 +33,7 @@ public class OutboxWorkerTests
 
         var logger = new Mock<ILogger<OutboxWorker>>();
 
-        var outboxWorker = new OutboxWorker(serviceProvider.Object, logger.Object);
+        var outboxWorker = new OutboxWorker(repository.Object, eventPublisher.Object, logger.Object);
 
         // When
         await outboxWorker.ProcessAsync(transactionId, default);
@@ -51,24 +51,14 @@ public class OutboxWorkerTests
         var entry = GetIntegrationEventEntity();
         var transactionId = entry.TransactionId;
 
-        var serviceProvider = new Mock<IServiceProvider>();
-        var serviceScopeFactory = new Mock<IServiceScopeFactory>();
-        var serviceScope = new Mock<IServiceScope>();
-
-        serviceProvider.Setup(m => m.GetService(typeof(IServiceScopeFactory))).Returns(serviceScopeFactory.Object);
-        serviceScopeFactory.Setup(m => m.CreateScope()).Returns(serviceScope.Object);
-        serviceScope.Setup(m => m.ServiceProvider).Returns(serviceProvider.Object);
-
         var repository = new Mock<IIntegrationEventRepository>();
-        serviceProvider.Setup(m => m.GetService(typeof(IIntegrationEventRepository))).Returns(repository.Object);
         repository.Setup(m => m.FindAsync(transactionId, default)).ReturnsAsync(new List<IntegrationEventEntity>());
 
         var eventPublisher = new Mock<IEventPublisher>();
-        serviceProvider.Setup(m => m.GetService(typeof(IEventPublisher))).Returns(eventPublisher.Object);
 
         var logger = new Mock<ILogger<OutboxWorker>>();
 
-        var outboxWorker = new OutboxWorker(serviceProvider.Object, logger.Object);
+        var outboxWorker = new OutboxWorker(repository.Object, eventPublisher.Object, logger.Object);
 
         // When
 
@@ -85,29 +75,20 @@ public class OutboxWorkerTests
         var entries = new List<IntegrationEventEntity> { entry };
         var transactionId = entry.TransactionId;
 
-        var serviceProvider = new Mock<IServiceProvider>();
-        var serviceScopeFactory = new Mock<IServiceScopeFactory>();
-        var serviceScope = new Mock<IServiceScope>();
-
-        serviceProvider.Setup(m => m.GetService(typeof(IServiceScopeFactory))).Returns(serviceScopeFactory.Object);
-        serviceScopeFactory.Setup(m => m.CreateScope()).Returns(serviceScope.Object);
-        serviceScope.Setup(m => m.ServiceProvider).Returns(serviceProvider.Object);
-
         var repository = new Mock<IIntegrationEventRepository>();
-        serviceProvider.Setup(m => m.GetService(typeof(IIntegrationEventRepository))).Returns(repository.Object);
         repository.Setup(m => m.FindAsync(It.Is<Guid>(id => id == transactionId), default)).ThrowsAsync(new Exception());
 
         var eventPublisher = new Mock<IEventPublisher>();
-        serviceProvider.Setup(m => m.GetService(typeof(IEventPublisher))).Returns(eventPublisher.Object);
 
         var logger = new Mock<ILogger<OutboxWorker>>();
 
-        var outboxWorker = new OutboxWorker(serviceProvider.Object, logger.Object);
+        var outboxWorker = new OutboxWorker(repository.Object, eventPublisher.Object, logger.Object);
 
         // When
-        await outboxWorker.ProcessAsync(transactionId, default);
+        var func = () => outboxWorker.ProcessAsync(transactionId, default);
 
         // Then
+        await func.Should().ThrowAsync<Exception>();
         logger.Verify(logger => logger.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
@@ -125,30 +106,21 @@ public class OutboxWorkerTests
         var entries = new List<IntegrationEventEntity> { entry };
         var transactionId = entry.TransactionId;
 
-        var serviceProvider = new Mock<IServiceProvider>();
-        var serviceScopeFactory = new Mock<IServiceScopeFactory>();
-        var serviceScope = new Mock<IServiceScope>();
-
-        serviceProvider.Setup(m => m.GetService(typeof(IServiceScopeFactory))).Returns(serviceScopeFactory.Object);
-        serviceScopeFactory.Setup(m => m.CreateScope()).Returns(serviceScope.Object);
-        serviceScope.Setup(m => m.ServiceProvider).Returns(serviceProvider.Object);
-
         var repository = new Mock<IIntegrationEventRepository>();
-        serviceProvider.Setup(m => m.GetService(typeof(IIntegrationEventRepository))).Returns(repository.Object);
         repository.Setup(m => m.FindAsync(transactionId, default)).ReturnsAsync(entries);
         repository.Setup(m => m.SaveAsync(entries, default)).ThrowsAsync(new Exception());
 
         var eventPublisher = new Mock<IEventPublisher>();
-        serviceProvider.Setup(m => m.GetService(typeof(IEventPublisher))).Returns(eventPublisher.Object);
 
         var logger = new Mock<ILogger<OutboxWorker>>();
 
-        var outboxWorker = new OutboxWorker(serviceProvider.Object, logger.Object);
+        var outboxWorker = new OutboxWorker(repository.Object, eventPublisher.Object, logger.Object);
 
         // When
-        await outboxWorker.ProcessAsync(transactionId, default);
+        var func = () => outboxWorker.ProcessAsync(transactionId, default);
 
         // Then
+        await func.Should().ThrowAsync<Exception>();
         repository.Verify(m => m.SaveAsync(entries, default), Times.Once());
         logger.Verify(logger => logger.Log(
                 LogLevel.Error,
@@ -168,30 +140,21 @@ public class OutboxWorkerTests
         var payloads = entries.Select(e => e.GetPayload()).ToList();
         var transactionId = entry.TransactionId;
 
-        var serviceProvider = new Mock<IServiceProvider>();
-        var serviceScopeFactory = new Mock<IServiceScopeFactory>();
-        var serviceScope = new Mock<IServiceScope>();
-
-        serviceProvider.Setup(m => m.GetService(typeof(IServiceScopeFactory))).Returns(serviceScopeFactory.Object);
-        serviceScopeFactory.Setup(m => m.CreateScope()).Returns(serviceScope.Object);
-        serviceScope.Setup(m => m.ServiceProvider).Returns(serviceProvider.Object);
-
         var repository = new Mock<IIntegrationEventRepository>();
-        serviceProvider.Setup(m => m.GetService(typeof(IIntegrationEventRepository))).Returns(repository.Object);
         repository.Setup(m => m.FindAsync(transactionId, default)).ReturnsAsync(entries);
 
         var eventPublisher = new Mock<IEventPublisher>();
         eventPublisher.Setup(m => m.PublishAsync(It.IsAny<IIntegrationEvent>(), default)).ThrowsAsync(new Exception());
-        serviceProvider.Setup(m => m.GetService(typeof(IEventPublisher))).Returns(eventPublisher.Object);
 
         var logger = new Mock<ILogger<OutboxWorker>>();
 
-        var outboxWorker = new OutboxWorker(serviceProvider.Object, logger.Object);
+        var outboxWorker = new OutboxWorker(repository.Object, eventPublisher.Object, logger.Object);
 
         // When
-        await outboxWorker.ProcessAsync(transactionId, default);
+        var func = () => outboxWorker.ProcessAsync(transactionId, default);
 
         // Then
+        await func.Should().ThrowAsync<Exception>();
         eventPublisher.Verify(m => m.PublishAsync(It.Is<IIntegrationEvent>(e => e is SomethingIntegrationEvent && e.Id == entry.Id), default), Times.Once());
         logger.Verify(logger => logger.Log(
                 LogLevel.Error,
@@ -210,32 +173,23 @@ public class OutboxWorkerTests
         var entries = new List<IntegrationEventEntity> { entry };
         var transactionId = entry.TransactionId;
 
-        var serviceProvider = new Mock<IServiceProvider>();
-        var serviceScopeFactory = new Mock<IServiceScopeFactory>();
-        var serviceScope = new Mock<IServiceScope>();
-
-        serviceProvider.Setup(m => m.GetService(typeof(IServiceScopeFactory))).Returns(serviceScopeFactory.Object);
-        serviceScopeFactory.Setup(m => m.CreateScope()).Returns(serviceScope.Object);
-        serviceScope.Setup(m => m.ServiceProvider).Returns(serviceProvider.Object);
-
         var repository = new Mock<IIntegrationEventRepository>();
-        serviceProvider.Setup(m => m.GetService(typeof(IIntegrationEventRepository))).Returns(repository.Object);
         repository.Setup(m => m.FindAsync(transactionId, default)).ReturnsAsync(entries);
         repository.SetupSequence(m => m.SaveAsync(entries, default))
             .Returns(Task.CompletedTask)
             .ThrowsAsync(new Exception());
 
         var eventPublisher = new Mock<IEventPublisher>();
-        serviceProvider.Setup(m => m.GetService(typeof(IEventPublisher))).Returns(eventPublisher.Object);
 
         var logger = new Mock<ILogger<OutboxWorker>>();
 
-        var outboxWorker = new OutboxWorker(serviceProvider.Object, logger.Object);
+        var outboxWorker = new OutboxWorker(repository.Object, eventPublisher.Object, logger.Object);
 
         // When
-        await outboxWorker.ProcessAsync(transactionId, default);
+        var func = () => outboxWorker.ProcessAsync(transactionId, default);
 
         // Then
+        await func.Should().ThrowAsync<Exception>();
         repository.Verify(m => m.SaveAsync(entries, default), Times.Exactly(2));
         logger.Verify(logger => logger.Log(
                 LogLevel.Error,
