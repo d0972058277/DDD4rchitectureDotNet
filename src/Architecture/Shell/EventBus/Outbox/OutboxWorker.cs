@@ -5,6 +5,7 @@ namespace Architecture.Shell.EventBus.Outbox;
 
 public class OutboxWorker : IOutboxWorker
 {
+    // TODO: 避免使用 Service Locator
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<OutboxWorker> _logger;
 

@@ -2,16 +2,16 @@ using Microsoft.Extensions.Logging;
 
 namespace Architecture.Shell.EventBus.Outbox;
 
-public class UnitOfWorkOutboxDecorator : IUnitOfWork
+public class OutboxDecoratorUnitOfWork : IUnitOfWork
 {
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IOutboxWorker _outboxWorker;
-    private readonly ILogger<UnitOfWorkOutboxDecorator> _logger;
+    private readonly IFireAndForgetService _fireAndForgetService;
+    private readonly ILogger<OutboxDecoratorUnitOfWork> _logger;
 
-    public UnitOfWorkOutboxDecorator(IUnitOfWork unitOfWork, IOutboxWorker outboxWorker, ILogger<UnitOfWorkOutboxDecorator> logger)
+    public OutboxDecoratorUnitOfWork(IUnitOfWork unitOfWork, IFireAndForgetService fireAndForgetService, ILogger<OutboxDecoratorUnitOfWork> logger)
     {
         _unitOfWork = unitOfWork;
-        _outboxWorker = outboxWorker;
+        _fireAndForgetService = fireAndForgetService;
         _logger = logger;
     }
 
@@ -33,8 +33,8 @@ public class UnitOfWorkOutboxDecorator : IUnitOfWork
 
         await _unitOfWork.CommitAsync(cancellationToken);
 
-        // TODO: 這邊應該使用像是 Hangfire, Quartz.Net, Hosted Services 之類的進行非同步處理
-        await _outboxWorker.ProcessAsync(transactionId, cancellationToken);
+        await _fireAndForgetService.ExecuteAsync(transactionId, cancellationToken);
+
         _logger.LogInformation("+++++ Outbox process integration events for {TransactionId}", transactionId);
     }
 }

@@ -6,6 +6,7 @@ namespace Architecture.Shell.EventBus.Inbox;
 public class EventConsumer : IEventConsumer
 {
     private readonly ILogger<EventConsumer> _logger;
+    // TODO: 避免使用 Service Locator
     private readonly IServiceProvider _serviceProvider;
 
     public EventConsumer(ILogger<EventConsumer> logger, IServiceProvider serviceProvider)
