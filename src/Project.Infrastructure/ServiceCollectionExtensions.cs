@@ -54,7 +54,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IOutboxWorker, OutboxWorker>();
         services.AddSingleton<IInboxWorker, InboxWorker>();
 
-        services.AddSingleton<IIntegrationEventHandlerTypeCache, IntegrationEventHandlerTypeCache>();
         services.AddIntegrationEventHandlers();
 
         services.AddTransient<IFireAndForgetService, HangfireFireAndForgetService>();
@@ -62,7 +61,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUnitOfWork>(sp =>
         {
             var dbContext = sp.GetRequiredService<ProjectDbContext>();
-            var fireAndForgetService = sp.GetRequiredService<Architecture.Shell.EventBus.Outbox.IFireAndForgetService>();
+            var fireAndForgetService = sp.GetRequiredService<IFireAndForgetService>();
             var logger = sp.GetRequiredService<ILogger<OutboxDecoratorUnitOfWork>>();
 
             var unitOfWork = new UnitOfWork(dbContext);
