@@ -83,22 +83,26 @@ public static class ServiceCollectionExtensions
 
     private static IServiceCollection AddIntegrationEventHandlers(this IServiceCollection services)
     {
-        AppDomain.CurrentDomain.GetAssemblies()
+        var integrationEventTypes = AppDomain.CurrentDomain.GetAssemblies()
             .SelectMany(assembly => assembly.GetLoadableTypes())
-            .Where(t => typeof(IIntegrationEvent).IsAssignableFrom(t) && !t.IsAbstract && t.IsClass)
-            .SelectMany(integrationEventType =>
+            .Where(t => typeof(IIntegrationEvent).IsAssignableFrom(t) && !t.IsAbstract && t.IsClass).ToList();
+
+        foreach (var integrationEventType in integrationEventTypes)
+        {
+            var handlerType = typeof(IIntegrationEventHandler<>).MakeGenericType(integrationEventType);
+            var handlerImplementations = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .Where(type => !type.IsAbstract && handlerType.IsAssignableFrom(type)).ToList();
+
+            if (handlerImplementations.Count > 1)
+                throw new InvalidOperationException($"一個 Domain 中，只可以有一個 {integrationEventType.Name} 的 IntegrationEventHandler 實作");
+
+            if (handlerImplementations.Count == 1)
             {
-                var handlerType = typeof(IIntegrationEventHandler<>).MakeGenericType(integrationEventType);
-                var handlerImplementations = AppDomain.CurrentDomain.GetAssemblies()
-                    .SelectMany(assembly => assembly.GetTypes())
-                    .Where(type => !type.IsAbstract && handlerType.IsAssignableFrom(type)).ToList();
-                return handlerImplementations;
-            })
-            .ToList()
-            .ForEach(handlerImplementation =>
-            {
-                services.AddScoped(handlerImplementation);
-            });
+                var handlerImplementation = handlerImplementations.First();
+                services.AddScoped(handlerType, handlerImplementation);
+            }
+        }
 
         return services;
     }

@@ -2,6 +2,6 @@ namespace Architecture.Shell.EventBus;
 
 public interface IIntegrationEvent
 {
-    Guid Id { get; }
-    DateTime CreationTimestamp { get; }
+    Guid Id { get; init; }
+    DateTime CreationTimestamp { get; init; }
 }

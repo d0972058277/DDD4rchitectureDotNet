@@ -13,29 +13,26 @@ public class EventConsumerTests
         // Given
         var logger = new Mock<ILogger<EventConsumer>>();
         var handler = new Mock<IIntegrationEventHandler<SomethingIntegrationEvent>>();
-        var type = handler.Object.GetType();
-        var types = new Type[] { type, type };
+        var type = typeof(IIntegrationEventHandler<>).MakeGenericType(typeof(SomethingIntegrationEvent));
 
         var serviceProvider = new Mock<IServiceProvider>();
         var serviceScopeFactory = new Mock<IServiceScopeFactory>();
         var serviceScope = new Mock<IServiceScope>();
-        var cache = new Mock<IIntegrationEventHandlerTypeCache>();
 
         serviceScopeFactory.Setup(m => m.CreateScope()).Returns(serviceScope.Object);
         serviceScope.Setup(m => m.ServiceProvider).Returns(serviceProvider.Object);
         serviceProvider.Setup(m => m.GetService(type)).Returns(handler.Object);
-        cache.Setup(m => m.GetImpHandlerTypes(typeof(SomethingIntegrationEvent))).Returns(types);
 
-        var consumer = new EventConsumer(cache.Object, serviceScopeFactory.Object, logger.Object);
+        var consumer = new EventConsumer(serviceScopeFactory.Object, logger.Object);
         var integrationEvent = new SomethingIntegrationEvent();
 
         // When
         await consumer.ConsumeAsync(integrationEvent, default);
 
         // Then
-        serviceScopeFactory.Verify(m => m.CreateScope(), Times.Exactly(2));
-        serviceScope.Verify(m => m.ServiceProvider, Times.Exactly(2));
-        serviceProvider.Verify(m => m.GetService(type), Times.Exactly(2));
-        handler.Verify(m => m.HandleAsync(integrationEvent, default), Times.Exactly(2));
+        serviceScopeFactory.Verify(m => m.CreateScope(), Times.Once());
+        serviceScope.Verify(m => m.ServiceProvider, Times.Once());
+        serviceProvider.Verify(m => m.GetService(type), Times.Once());
+        handler.Verify(m => m.HandleAsync(integrationEvent, default), Times.Once());
     }
 }

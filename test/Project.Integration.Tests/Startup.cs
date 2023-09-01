@@ -60,7 +60,6 @@ public class Startup
 
                 cfg.ConfigureEndpoints(context);
                 cfg.Publish<IIntegrationEvent>(c => c.Exclude = true);
-                cfg.Publish<IntegrationEventBase>(c => c.Exclude = true);
             });
         });
     }
