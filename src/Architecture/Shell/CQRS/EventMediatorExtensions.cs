@@ -14,6 +14,7 @@ namespace Architecture.Shell.CQRS
             {
                 var domainEventType = domainEvent.GetType();
                 var publishMethod = PublishMethodsCache.GetOrAdd(domainEventType, GetPublishMethod);
+                // TODO: 應避免反射的使用，找尋一下有沒有更加的方式
                 await (Task)publishMethod.Invoke(mediator, new object[] { domainEvent, cancellationToken })!;
             }
         }

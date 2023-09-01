@@ -14,7 +14,7 @@ public class InboxWorker : IInboxWorker
         _logger = logger;
     }
 
-    public async Task ProcessAsync(Guid integrationEventId, CancellationToken cancellationToken = default)
+    public async Task ProcessAsync<TIntegrationEvent>(TIntegrationEvent integrationEvent, CancellationToken cancellationToken = default) where TIntegrationEvent : IIntegrationEvent
     {
         try
         {
@@ -22,7 +22,7 @@ public class InboxWorker : IInboxWorker
             var repository = scope.ServiceProvider.GetRequiredService<IIntegrationEventRepository>();
             var eventConsumer = scope.ServiceProvider.GetRequiredService<IEventConsumer>();
 
-            var entryFound = await repository.FindAsync(integrationEventId, cancellationToken);
+            var entryFound = await repository.FindAsync(integrationEvent.Id, cancellationToken);
             if (entryFound.HasNoValue)
                 return;
 
@@ -31,7 +31,6 @@ public class InboxWorker : IInboxWorker
             entry.Progress();
             await repository.SaveAsync(entry, cancellationToken);
 
-            var integrationEvent = entry.GetPayload().Deserialize();
             await eventConsumer.ConsumeAsync(integrationEvent, cancellationToken);
 
             entry.Handle();

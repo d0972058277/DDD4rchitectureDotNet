@@ -1,5 +1,6 @@
 using Architecture;
 using Architecture.Shell.CQRS;
+using Architecture.Shell.EventBus;
 using FluentAssertions;
 using MassTransit.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,15 @@ using Project.Domain.SomethingContext.Models;
 using Project.Infrastructure;
 
 namespace Project.Integration.Tests.UseCase.SomethingContext;
+
+public class TestAggregateCreatedIntegrationEventHandler : IIntegrationEventHandler<AggregateCreatedIntegrationEvent>
+{
+    // TODO: 調整測試方式
+    public Task HandleAsync(AggregateCreatedIntegrationEvent integrationEvent, CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
+    }
+}
 
 [Collection("Sequential")]
 public class CreateAggregateUseCase
@@ -61,6 +71,8 @@ public class CreateAggregateUseCase
 
         // NOTE: 驗證事件已消耗
         (await _testHarness.Consumed.Any<AggregateCreatedIntegrationEvent>(e => e.Context.Message.SomethingAggregateId == something.Id)).Should().BeTrue();
+
+        await Task.Delay(1000);
     }
 
     private static List<SomethingValueObject> GetSomethingValueObjects()

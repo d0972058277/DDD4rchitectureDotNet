@@ -15,6 +15,7 @@ public class InboxWorkerTests
         var entry = GetIntegrationEventEntity();
         var integrationEventEntityId = entry.Id;
         var payload = entry.GetPayload();
+        var integrationEvent = payload.Deserialize<SomethingIntegrationEvent>();
 
         var serviceProvider = new Mock<IServiceProvider>();
         var serviceScopeFactory = new Mock<IServiceScopeFactory>();
@@ -36,7 +37,7 @@ public class InboxWorkerTests
         var inboxWorker = new InboxWorker(serviceProvider.Object, logger.Object);
 
         // When
-        await inboxWorker.ProcessAsync(integrationEventEntityId, default);
+        await inboxWorker.ProcessAsync<SomethingIntegrationEvent>(integrationEvent, default);
 
         // Then
         repository.Verify(m => m.FindAsync(integrationEventEntityId, default), Times.Once());
@@ -51,7 +52,7 @@ public class InboxWorkerTests
         var entry = GetIntegrationEventEntity();
         var integrationEventEntityId = entry.Id;
         var payload = entry.GetPayload();
-
+        var integrationEvent = payload.Deserialize<SomethingIntegrationEvent>();
 
         var serviceProvider = new Mock<IServiceProvider>();
         var serviceScopeFactory = new Mock<IServiceScopeFactory>();
@@ -73,7 +74,7 @@ public class InboxWorkerTests
         var inboxWorker = new InboxWorker(serviceProvider.Object, logger.Object);
 
         // When
-        await inboxWorker.ProcessAsync(integrationEventEntityId, default);
+        await inboxWorker.ProcessAsync<SomethingIntegrationEvent>(integrationEvent, default);
 
         // Then
         repository.Verify(m => m.SaveAsync(entry, default), Times.Never());
@@ -86,6 +87,8 @@ public class InboxWorkerTests
         // Given
         var entry = GetIntegrationEventEntity();
         var integrationEventEntityId = entry.Id;
+        var payload = entry.GetPayload();
+        var integrationEvent = payload.Deserialize<SomethingIntegrationEvent>();
 
         var serviceProvider = new Mock<IServiceProvider>();
         var serviceScopeFactory = new Mock<IServiceScopeFactory>();
@@ -107,7 +110,7 @@ public class InboxWorkerTests
         var inboxWorker = new InboxWorker(serviceProvider.Object, logger.Object);
 
         // When
-        await inboxWorker.ProcessAsync(integrationEventEntityId, default);
+        await inboxWorker.ProcessAsync<SomethingIntegrationEvent>(integrationEvent, default);
 
         // Then
         logger.Verify(logger => logger.Log(
@@ -125,6 +128,8 @@ public class InboxWorkerTests
         // Given
         var entry = GetIntegrationEventEntity();
         var integrationEventEntityId = entry.Id;
+        var payload = entry.GetPayload();
+        var integrationEvent = payload.Deserialize<SomethingIntegrationEvent>();
 
         var serviceProvider = new Mock<IServiceProvider>();
         var serviceScopeFactory = new Mock<IServiceScopeFactory>();
@@ -147,7 +152,7 @@ public class InboxWorkerTests
         var inboxWorker = new InboxWorker(serviceProvider.Object, logger.Object);
 
         // When
-        await inboxWorker.ProcessAsync(integrationEventEntityId, default);
+        await inboxWorker.ProcessAsync<SomethingIntegrationEvent>(integrationEvent, default);
 
         // Then
         repository.Verify(m => m.SaveAsync(entry, default), Times.Once());
@@ -167,6 +172,7 @@ public class InboxWorkerTests
         var entry = GetIntegrationEventEntity();
         var integrationEventEntityId = entry.Id;
         var payload = entry.GetPayload();
+        var integrationEvent = payload.Deserialize<SomethingIntegrationEvent>();
 
         var serviceProvider = new Mock<IServiceProvider>();
         var serviceScopeFactory = new Mock<IServiceScopeFactory>();
@@ -189,7 +195,7 @@ public class InboxWorkerTests
         var inboxWorker = new InboxWorker(serviceProvider.Object, logger.Object);
 
         // When
-        await inboxWorker.ProcessAsync(integrationEventEntityId, default);
+        await inboxWorker.ProcessAsync<SomethingIntegrationEvent>(integrationEvent, default);
 
         // Then
         eventConsumer.Verify(m => m.ConsumeAsync(It.Is<IIntegrationEvent>(e => e is SomethingIntegrationEvent && e.Id == entry.Id), default), Times.Once());
@@ -208,6 +214,8 @@ public class InboxWorkerTests
         // Given
         var entry = GetIntegrationEventEntity();
         var integrationEventEntityId = entry.Id;
+        var payload = entry.GetPayload();
+        var integrationEvent = payload.Deserialize<SomethingIntegrationEvent>();
 
         var serviceProvider = new Mock<IServiceProvider>();
         var serviceScopeFactory = new Mock<IServiceScopeFactory>();
@@ -233,7 +241,7 @@ public class InboxWorkerTests
         var inboxWorker = new InboxWorker(serviceProvider.Object, logger.Object);
 
         // When
-        await inboxWorker.ProcessAsync(integrationEventEntityId, default);
+        await inboxWorker.ProcessAsync<SomethingIntegrationEvent>(integrationEvent, default);
 
         // Then
         repository.Verify(m => m.SaveAsync(entry, default), Times.Exactly(2));

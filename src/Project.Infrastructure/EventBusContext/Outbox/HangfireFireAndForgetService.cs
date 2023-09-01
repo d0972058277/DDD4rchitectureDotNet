@@ -3,6 +3,7 @@ using Hangfire;
 
 namespace Project.Infrastructure.EventBusContext.Outbox;
 
+// NOTE: Inbox 的 Hangfire 直接寫在 MasstransitGenericConsumer 是因為 Outbox 的流程寫在 Architecture
 public class HangfireFireAndForgetService : IFireAndForgetService
 {
     private readonly IBackgroundJobClient _backgroundJobClient;

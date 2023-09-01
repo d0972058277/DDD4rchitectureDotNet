@@ -51,6 +51,11 @@ public class Payload : ValueObject
         return (JsonSerializer.Deserialize(Content, type) as IIntegrationEvent)!;
     }
 
+    public TIntegrationEvent Deserialize<TIntegrationEvent>() where TIntegrationEvent : IIntegrationEvent
+    {
+        return JsonSerializer.Deserialize<TIntegrationEvent>(Content)!;
+    }
+
     class RuntimeTypeNameCache
     {
         private static readonly Lazy<RuntimeTypeNameCache> _lazyInstance =
