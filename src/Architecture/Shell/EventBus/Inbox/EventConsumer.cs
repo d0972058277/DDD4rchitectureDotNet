@@ -5,12 +5,12 @@ namespace Architecture.Shell.EventBus.Inbox;
 
 public class EventConsumer : IEventConsumer
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<EventConsumer> _logger;
 
-    public EventConsumer(IServiceScopeFactory serviceScopeFactory, ILogger<EventConsumer> logger)
+    public EventConsumer(IServiceProvider serviceProvider, ILogger<EventConsumer> logger)
     {
-        _serviceScopeFactory = serviceScopeFactory;
+        _serviceProvider = serviceProvider;
         _logger = logger;
     }
 
@@ -18,11 +18,11 @@ public class EventConsumer : IEventConsumer
     {
         var integrationEventType = integrationEvent.GetType();
         var integrationEventTypeName = integrationEventType.GetGenericTypeName();
-
         _logger.LogInformation("<<<<< Consume {IntegrationEventTypeName} {@IntegrationEvent}", integrationEventTypeName, integrationEvent);
 
-        using var scope = _serviceScopeFactory.CreateScope();
-        var handler = scope.ServiceProvider.GetRequiredService<IIntegrationEventHandler<TIntegrationEvent>>();
+        var handler = _serviceProvider.GetService<IIntegrationEventHandler<TIntegrationEvent>>();
+        if (handler is null)
+            return;
         await handler.HandleAsync(integrationEvent, cancellationToken);
     }
 }
