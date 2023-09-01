@@ -26,13 +26,9 @@ public class InboxWorker : IInboxWorker
             if (entryFound.HasNoValue)
                 return;
 
-            var entry = entryFound.Value;
-
-            entry.Progress();
-            await repository.SaveAsync(entry, cancellationToken);
-
             await eventConsumer.ConsumeAsync(integrationEvent, cancellationToken);
 
+            var entry = entryFound.Value;
             entry.Handle();
             await repository.SaveAsync(entry, cancellationToken);
         }

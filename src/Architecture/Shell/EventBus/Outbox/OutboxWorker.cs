@@ -24,11 +24,6 @@ public class OutboxWorker : IOutboxWorker
             if (!entries.Any())
                 return;
 
-            // TODO: 是否不再需要 Progress 的狀態？減少一次的 DbCommand
-            foreach (var entry in entries)
-                entry.Progress();
-            await _repository.SaveAsync(entries, cancellationToken);
-
             var integrationEvents = entries.Select(e => e.GetPayload().Deserialize()).ToList();
             foreach (var integrationEvent in integrationEvents)
                 await _eventPublisher.PublishAsync(integrationEvent, cancellationToken);
