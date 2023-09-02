@@ -40,6 +40,8 @@ public class CreateAggregateUseCase
     [Fact]
     public async Task 應該可以創建Aggregate並查詢到()
     {
+        // TODO: 延遲註冊 IIntegrationEventHandler<AggregateCreatedIntegrationEvent> 並使用 Moq
+
         await _dbContext.ResetDatabaseAsync();
 
         // Given
