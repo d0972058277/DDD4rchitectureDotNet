@@ -1,4 +1,6 @@
+using System.Linq.Expressions;
 using Architecture;
+using Architecture.Core;
 using CSharpFunctionalExtensions;
 
 namespace Project.Domain.SomethingContext.Models;
@@ -28,18 +30,54 @@ public class SomethingValueObject : ValueObject
 
     public static Result<SomethingValueObject> Create(string @string, int number, bool boolean, DateTime dateTime)
     {
-        if (string.IsNullOrWhiteSpace(@string))
-            return Result.Failure<SomethingValueObject>("String 不可為空");
+        var specification = SomethingValueObjectSpecification<SomethingValueObject>.Create(
+            x => x.String,
+            x => x.Number,
+            x => x.Boolean,
+            x => x.DateTime);
+        var instance = new SomethingValueObject(@string, number, boolean, dateTime);
+        return specification.IsSatisfiedBy(instance);
+    }
 
-        if (number < 0)
-            return Result.Failure<SomethingValueObject>("Number 不可小於 0");
+    public class SomethingValueObjectSpecification<T> : Specification<T>
+    {
+        private readonly Expression<Func<T, string>> _stringExpression;
+        private readonly Expression<Func<T, int>> _numberExpression;
+        private readonly Expression<Func<T, bool>> _booleanExpression;
+        private readonly Expression<Func<T, DateTime>> _dateTimeExpression;
 
-        if (!boolean)
-            return Result.Failure<SomethingValueObject>("Boolean 不可為 False");
+        private SomethingValueObjectSpecification(Expression<Func<T, string>> stringExpression, Expression<Func<T, int>> numberExpression, Expression<Func<T, bool>> booleanExpression, Expression<Func<T, DateTime>> dateTimeExpression)
+        {
+            _stringExpression = stringExpression;
+            _numberExpression = numberExpression;
+            _booleanExpression = booleanExpression;
+            _dateTimeExpression = dateTimeExpression;
+        }
 
-        if (dateTime < SystemDateTime.UtcNow)
-            return Result.Failure<SomethingValueObject>("DateTime 不可小於系統的現在時間(UTC)");
+        protected override Func<T, Result<T>> Validate() => arg =>
+        {
+            var @string = _stringExpression.Compile()(arg);
+            if (string.IsNullOrWhiteSpace(@string))
+                return Result.Failure<T>($"{_stringExpression.GetPropertyName()} 不可為空");
 
-        return new SomethingValueObject(@string, number, boolean, dateTime);
+            var number = _numberExpression.Compile()(arg);
+            if (number < 0)
+                return Result.Failure<T>($"{_numberExpression.GetPropertyName()} 不可小於 0");
+
+            var boolean = _booleanExpression.Compile()(arg);
+            if (!boolean)
+                return Result.Failure<T>($"{_booleanExpression.GetPropertyName()} 不可為 False");
+
+            var dateTime = _dateTimeExpression.Compile()(arg);
+            if (dateTime < SystemDateTime.UtcNow)
+                return Result.Failure<T>($"{_dateTimeExpression.GetGenericTypeName()} 不可小於系統的現在時間(UTC)");
+
+            return arg;
+        };
+
+        public static SomethingValueObjectSpecification<T> Create(Expression<Func<T, string>> stringExpression, Expression<Func<T, int>> numberExpression, Expression<Func<T, bool>> booleanExpression, Expression<Func<T, DateTime>> dateTimeExpression)
+        {
+            return new SomethingValueObjectSpecification<T>(stringExpression, numberExpression, booleanExpression, dateTimeExpression);
+        }
     }
 }
