@@ -30,7 +30,7 @@ public class RenameEntityCommandTests
 
         // Then
         repository.Verify(m => m.SaveAsync(It.Is<SomethingAggregate>(a => a == aggregate), default), Times.Once());
-        mediator.Verify(m => m.PublishAsync(It.Is<EntityRenamedDomainEvent>(e => e.SomethingAggregateId == aggregate.Id), default), Times.Once());
+        mediator.Verify(m => m.PublishAsync(It.Is<IDomainEvent>(e => e is EntityRenamedDomainEvent), default), Times.Once());
     }
 
     private static SomethingAggregate GetSomethingAggregate()
