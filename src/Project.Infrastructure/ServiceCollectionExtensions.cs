@@ -1,7 +1,9 @@
 using System.Reflection;
+using Architecture;
 using Architecture.Shell;
 using Architecture.Shell.CQRS;
 using Architecture.Shell.CQRS.Behavior;
+using Architecture.Shell.EventBus;
 using Architecture.Shell.EventBus.Inbox;
 using Architecture.Shell.EventBus.Outbox;
 using CorrelationId;
@@ -52,6 +54,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IOutboxWorker, OutboxWorker>();
         services.AddSingleton<IInboxWorker, InboxWorker>();
 
+        services.AddIntegrationEventHandlers();
+
         services.AddTransient<IFireAndForgetService, HangfireFireAndForgetService>();
 
         services.AddScoped<IUnitOfWork>(sp =>
@@ -60,9 +64,9 @@ public static class ServiceCollectionExtensions
             var fireAndForgetService = sp.GetRequiredService<IFireAndForgetService>();
             var logger = sp.GetRequiredService<ILogger<OutboxDecoratorUnitOfWork>>();
 
-            IUnitOfWork unitOfWork = new UnitOfWork(dbContext);
-            unitOfWork = new OutboxDecoratorUnitOfWork(unitOfWork, fireAndForgetService, logger);
-            return unitOfWork;
+            var unitOfWork = new UnitOfWork(dbContext);
+            var outboxDecoratorUnitOfWork = new OutboxDecoratorUnitOfWork(unitOfWork, fireAndForgetService, logger);
+            return outboxDecoratorUnitOfWork;
         });
 
         services.AddHangfire(config =>
@@ -72,6 +76,32 @@ public static class ServiceCollectionExtensions
         {
 
         });
+
+        return services;
+    }
+
+    private static IServiceCollection AddIntegrationEventHandlers(this IServiceCollection services)
+    {
+        var integrationEventTypes = AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(assembly => assembly.GetLoadableTypes())
+            .Where(t => typeof(IIntegrationEvent).IsAssignableFrom(t) && !t.IsAbstract && t.IsClass).ToList();
+
+        foreach (var integrationEventType in integrationEventTypes)
+        {
+            var handlerType = typeof(IIntegrationEventHandler<>).MakeGenericType(integrationEventType);
+            var handlerImplementations = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .Where(type => !type.IsAbstract && handlerType.IsAssignableFrom(type)).ToList();
+
+            if (handlerImplementations.Count > 1)
+                throw new InvalidOperationException($"一個 Domain 中，只可以有一個 {integrationEventType.Name} 的 IntegrationEventHandler 實作");
+
+            if (handlerImplementations.Count == 1)
+            {
+                var handlerImplementation = handlerImplementations.First();
+                services.AddScoped(handlerType, handlerImplementation);
+            }
+        }
 
         return services;
     }

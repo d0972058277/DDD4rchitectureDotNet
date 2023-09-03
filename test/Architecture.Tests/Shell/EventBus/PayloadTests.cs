@@ -38,7 +38,21 @@ public class PayloadTests
         realIntegrationEvent.As<SomethingIntegrationEvent>().CreationTimestamp.Should().Be(payload.CreationTimestamp);
     }
 
-    private Payload GetPayload()
+    [Fact]
+    public void 應該可以成功反序列化成明確的IntegrationEvent()
+    {
+        // Given
+        var payload = GetPayload();
+
+        // When
+        var realIntegrationEvent = payload.Deserialize<SomethingIntegrationEvent>();
+
+        // Then
+        realIntegrationEvent.Id.Should().Be(payload.Id);
+        realIntegrationEvent.CreationTimestamp.Should().Be(payload.CreationTimestamp);
+    }
+
+    private static Payload GetPayload()
     {
         var somethingIntegrationEvent = new SomethingIntegrationEvent();
         var payload = Payload.Serialize(somethingIntegrationEvent);

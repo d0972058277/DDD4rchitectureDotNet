@@ -5,31 +5,24 @@ namespace Architecture.Shell.EventBus.Inbox;
 
 public class EventConsumer : IEventConsumer
 {
-    private readonly ILogger<EventConsumer> _logger;
-    // TODO: 避免使用 Service Locator
     private readonly IServiceProvider _serviceProvider;
+    private readonly ILogger<EventConsumer> _logger;
 
-    public EventConsumer(ILogger<EventConsumer> logger, IServiceProvider serviceProvider)
+    public EventConsumer(IServiceProvider serviceProvider, ILogger<EventConsumer> logger)
     {
-        _logger = logger;
         _serviceProvider = serviceProvider;
+        _logger = logger;
     }
 
     public async Task ConsumeAsync<TIntegrationEvent>(TIntegrationEvent integrationEvent, CancellationToken cancellationToken = default) where TIntegrationEvent : IIntegrationEvent
     {
-        var typeName = integrationEvent.GetGenericTypeName();
-        _logger.LogInformation("<<<<< Consume {IntegrationEventTypeName} {@IntegrationEvent}", typeName, integrationEvent);
+        var integrationEventType = integrationEvent.GetType();
+        var integrationEventTypeName = integrationEventType.GetGenericTypeName();
+        _logger.LogInformation("<<<<< Consume {IntegrationEventTypeName} {@IntegrationEvent}", integrationEventTypeName, integrationEvent);
 
-        var handlers = _serviceProvider.GetRequiredService<IEnumerable<IIntegrationEventHandler<TIntegrationEvent>>>();
-
-        foreach (var handler in handlers)
-        {
-            /* 
-            TODO: 更傾向能夠併發執行 IntegrationEventHandler
-            但要考慮同一 Scope 會取得相同的 DbContext ，併發會出錯的問題
-            有可能要有 IntegrationEventHandlerFactory ，並用 Dictionary 的方式紀錄 IntegrationEventHandler 的類型
-            */
-            await handler.HandleAsync(integrationEvent, cancellationToken);
-        }
+        var handler = _serviceProvider.GetService<IIntegrationEventHandler<TIntegrationEvent>>();
+        if (handler is null)
+            return;
+        await handler.HandleAsync(integrationEvent, cancellationToken);
     }
 }

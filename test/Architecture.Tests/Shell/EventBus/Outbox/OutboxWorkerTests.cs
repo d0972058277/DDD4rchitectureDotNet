@@ -40,7 +40,7 @@ public class OutboxWorkerTests
 
         // Then
         repository.Verify(m => m.FindAsync(transactionId, default), Times.Once());
-        repository.Verify(m => m.SaveAsync(entries, default), Times.Exactly(2));
+        repository.Verify(m => m.SaveAsync(entries, default), Times.Once());
         eventPublisher.Verify(m => m.PublishAsync(It.Is<IIntegrationEvent>(e => e is SomethingIntegrationEvent && e.Id == entry.Id), default), Times.Once());
     }
 
@@ -156,41 +156,6 @@ public class OutboxWorkerTests
         // Then
         await func.Should().ThrowAsync<Exception>();
         eventPublisher.Verify(m => m.PublishAsync(It.Is<IIntegrationEvent>(e => e is SomethingIntegrationEvent && e.Id == entry.Id), default), Times.Once());
-        logger.Verify(logger => logger.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.IsAny<It.IsAnyType>(),
-                It.IsAny<Exception?>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
-    }
-
-    [Fact]
-    public async Task 如果第二次SaveAsync拋出例外_應該被記錄()
-    {
-        // Given
-        var entry = GetIntegrationEventEntity();
-        var entries = new List<IntegrationEventEntity> { entry };
-        var transactionId = entry.TransactionId;
-
-        var repository = new Mock<IIntegrationEventRepository>();
-        repository.Setup(m => m.FindAsync(transactionId, default)).ReturnsAsync(entries);
-        repository.SetupSequence(m => m.SaveAsync(entries, default))
-            .Returns(Task.CompletedTask)
-            .ThrowsAsync(new Exception());
-
-        var eventPublisher = new Mock<IEventPublisher>();
-
-        var logger = new Mock<ILogger<OutboxWorker>>();
-
-        var outboxWorker = new OutboxWorker(repository.Object, eventPublisher.Object, logger.Object);
-
-        // When
-        var func = () => outboxWorker.ProcessAsync(transactionId, default);
-
-        // Then
-        await func.Should().ThrowAsync<Exception>();
-        repository.Verify(m => m.SaveAsync(entries, default), Times.Exactly(2));
         logger.Verify(logger => logger.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),

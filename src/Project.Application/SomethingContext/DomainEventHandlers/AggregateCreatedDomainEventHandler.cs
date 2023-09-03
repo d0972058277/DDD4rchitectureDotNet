@@ -16,7 +16,10 @@ public class AggregateCreatedDomainEventHandler : IDomainEventHandler<AggregateC
 
     public Task Handle(AggregateCreatedDomainEvent notification, CancellationToken cancellationToken)
     {
-        var integrationEvent = new AggregateCreatedIntegrationEvent(notification.SomethingAggregateId);
+        var integrationEvent = new AggregateCreatedIntegrationEvent
+        {
+            SomethingAggregateId = notification.SomethingAggregateId
+        };
         return _outbox.PublishAsync(integrationEvent, cancellationToken);
     }
 }

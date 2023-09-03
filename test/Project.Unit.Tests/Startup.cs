@@ -5,7 +5,7 @@ namespace Project.Unit.Tests;
 
 public class Startup
 {
-    public void ConfigureServices(IServiceCollection services)
+    public static void ConfigureServices(IServiceCollection _)
     {
         var now = DateTime.UtcNow;
         SystemDateTime.InitUtcNow(() => now);

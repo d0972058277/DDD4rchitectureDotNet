@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Project.Application;
 using Project.Infrastructure;
 using Project.Infrastructure.DbCommandInterceptors;
 using Project.Infrastructure.EventBusContext.Inbox;
@@ -60,7 +59,6 @@ public class Startup
 
                 cfg.ConfigureEndpoints(context);
                 cfg.Publish<IIntegrationEvent>(c => c.Exclude = true);
-                cfg.Publish<IntegrationEventBase>(c => c.Exclude = true);
             });
         });
     }

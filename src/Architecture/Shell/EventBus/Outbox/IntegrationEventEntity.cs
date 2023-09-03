@@ -43,11 +43,6 @@ public class IntegrationEventEntity : AggregateRoot<Guid>
         );
     }
 
-    public void Progress()
-    {
-        State = State.InProgress;
-    }
-
     public void Publish()
     {
         State = State.Published;

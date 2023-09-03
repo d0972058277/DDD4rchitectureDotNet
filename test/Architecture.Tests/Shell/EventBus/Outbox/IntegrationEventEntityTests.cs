@@ -25,24 +25,10 @@ public class IntegrationEventEntityTests
     }
 
     [Fact]
-    public void 安排動作後_狀態應該是InProgress()
-    {
-        // Given
-        var entry = GetIntegrationEventEntity();
-
-        // When
-        entry.Progress();
-
-        // Then
-        entry.State.Should().Be(State.InProgress);
-    }
-
-    [Fact]
     public void 發佈後_狀態應該要是Published()
     {
         // Given
         var entry = GetIntegrationEventEntity();
-        entry.Progress();
 
         // When
         entry.Publish();

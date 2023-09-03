@@ -1,41 +1,33 @@
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Architecture.Shell.EventBus.Inbox;
 
 public class InboxWorker : IInboxWorker
 {
-    private readonly IServiceProvider _serviceProvider;
+    private readonly IIntegrationEventRepository _repository;
+    private readonly IEventConsumer _eventConsumer;
     private readonly ILogger<InboxWorker> _logger;
 
-    public InboxWorker(IServiceProvider serviceProvider, ILogger<InboxWorker> logger)
+    public InboxWorker(IIntegrationEventRepository repository, IEventConsumer eventConsumer, ILogger<InboxWorker> logger)
     {
-        _serviceProvider = serviceProvider;
+        _repository = repository;
+        _eventConsumer = eventConsumer;
         _logger = logger;
     }
 
-    public async Task ProcessAsync(Guid integrationEventId, CancellationToken cancellationToken = default)
+    public async Task ProcessAsync<TIntegrationEvent>(TIntegrationEvent integrationEvent, CancellationToken cancellationToken = default) where TIntegrationEvent : IIntegrationEvent
     {
         try
         {
-            using var scope = _serviceProvider.CreateScope();
-            var repository = scope.ServiceProvider.GetRequiredService<IIntegrationEventRepository>();
-            var eventConsumer = scope.ServiceProvider.GetRequiredService<IEventConsumer>();
-
-            var entryFound = await repository.FindAsync(integrationEventId, cancellationToken);
+            var entryFound = await _repository.FindAsync(integrationEvent.Id, cancellationToken);
             if (entryFound.HasNoValue)
                 return;
 
+            await _eventConsumer.ConsumeAsync(integrationEvent, cancellationToken);
+
             var entry = entryFound.Value;
-
-            entry.Progress();
-            await repository.SaveAsync(entry, cancellationToken);
-
-            var integrationEvent = entry.GetPayload().Deserialize();
-            await eventConsumer.ConsumeAsync(integrationEvent, cancellationToken);
-
             entry.Handle();
-            await repository.SaveAsync(entry, cancellationToken);
+            await _repository.SaveAsync(entry, cancellationToken);
         }
         catch (Exception ex)
         {
