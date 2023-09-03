@@ -17,24 +17,14 @@ public class InboxWorkerTests
         var payload = entry.GetPayload();
         var integrationEvent = payload.Deserialize<SomethingIntegrationEvent>();
 
-        var serviceProvider = new Mock<IServiceProvider>();
-        var serviceScopeFactory = new Mock<IServiceScopeFactory>();
-        var serviceScope = new Mock<IServiceScope>();
-
-        serviceProvider.Setup(m => m.GetService(typeof(IServiceScopeFactory))).Returns(serviceScopeFactory.Object);
-        serviceScopeFactory.Setup(m => m.CreateScope()).Returns(serviceScope.Object);
-        serviceScope.Setup(m => m.ServiceProvider).Returns(serviceProvider.Object);
-
         var repository = new Mock<IIntegrationEventRepository>();
-        serviceProvider.Setup(m => m.GetService(typeof(IIntegrationEventRepository))).Returns(repository.Object);
         repository.Setup(m => m.FindAsync(integrationEventEntityId, default)).ReturnsAsync(entry);
 
         var eventConsumer = new Mock<IEventConsumer>();
-        serviceProvider.Setup(m => m.GetService(typeof(IEventConsumer))).Returns(eventConsumer.Object);
 
         var logger = new Mock<ILogger<InboxWorker>>();
 
-        var inboxWorker = new InboxWorker(serviceProvider.Object, logger.Object);
+        var inboxWorker = new InboxWorker(repository.Object, eventConsumer.Object, logger.Object);
 
         // When
         await inboxWorker.ProcessAsync<SomethingIntegrationEvent>(integrationEvent, default);
@@ -54,24 +44,14 @@ public class InboxWorkerTests
         var payload = entry.GetPayload();
         var integrationEvent = payload.Deserialize<SomethingIntegrationEvent>();
 
-        var serviceProvider = new Mock<IServiceProvider>();
-        var serviceScopeFactory = new Mock<IServiceScopeFactory>();
-        var serviceScope = new Mock<IServiceScope>();
-
-        serviceProvider.Setup(m => m.GetService(typeof(IServiceScopeFactory))).Returns(serviceScopeFactory.Object);
-        serviceScopeFactory.Setup(m => m.CreateScope()).Returns(serviceScope.Object);
-        serviceScope.Setup(m => m.ServiceProvider).Returns(serviceProvider.Object);
-
         var repository = new Mock<IIntegrationEventRepository>();
-        serviceProvider.Setup(m => m.GetService(typeof(IIntegrationEventRepository))).Returns(repository.Object);
         repository.Setup(m => m.FindAsync(integrationEventEntityId, default)).ReturnsAsync(Maybe<IntegrationEventEntity>.None);
 
         var eventConsumer = new Mock<IEventConsumer>();
-        serviceProvider.Setup(m => m.GetService(typeof(IEventConsumer))).Returns(eventConsumer.Object);
 
         var logger = new Mock<ILogger<InboxWorker>>();
 
-        var inboxWorker = new InboxWorker(serviceProvider.Object, logger.Object);
+        var inboxWorker = new InboxWorker(repository.Object, eventConsumer.Object, logger.Object);
 
         // When
         await inboxWorker.ProcessAsync<SomethingIntegrationEvent>(integrationEvent, default);
@@ -90,24 +70,14 @@ public class InboxWorkerTests
         var payload = entry.GetPayload();
         var integrationEvent = payload.Deserialize<SomethingIntegrationEvent>();
 
-        var serviceProvider = new Mock<IServiceProvider>();
-        var serviceScopeFactory = new Mock<IServiceScopeFactory>();
-        var serviceScope = new Mock<IServiceScope>();
-
-        serviceProvider.Setup(m => m.GetService(typeof(IServiceScopeFactory))).Returns(serviceScopeFactory.Object);
-        serviceScopeFactory.Setup(m => m.CreateScope()).Returns(serviceScope.Object);
-        serviceScope.Setup(m => m.ServiceProvider).Returns(serviceProvider.Object);
-
         var repository = new Mock<IIntegrationEventRepository>();
-        serviceProvider.Setup(m => m.GetService(typeof(IIntegrationEventRepository))).Returns(repository.Object);
         repository.Setup(m => m.FindAsync(integrationEventEntityId, default)).ThrowsAsync(new Exception());
 
         var eventConsumer = new Mock<IEventConsumer>();
-        serviceProvider.Setup(m => m.GetService(typeof(IEventConsumer))).Returns(eventConsumer.Object);
 
         var logger = new Mock<ILogger<InboxWorker>>();
 
-        var inboxWorker = new InboxWorker(serviceProvider.Object, logger.Object);
+        var inboxWorker = new InboxWorker(repository.Object, eventConsumer.Object, logger.Object);
 
         // When
         await inboxWorker.ProcessAsync<SomethingIntegrationEvent>(integrationEvent, default);
@@ -131,25 +101,15 @@ public class InboxWorkerTests
         var payload = entry.GetPayload();
         var integrationEvent = payload.Deserialize<SomethingIntegrationEvent>();
 
-        var serviceProvider = new Mock<IServiceProvider>();
-        var serviceScopeFactory = new Mock<IServiceScopeFactory>();
-        var serviceScope = new Mock<IServiceScope>();
-
-        serviceProvider.Setup(m => m.GetService(typeof(IServiceScopeFactory))).Returns(serviceScopeFactory.Object);
-        serviceScopeFactory.Setup(m => m.CreateScope()).Returns(serviceScope.Object);
-        serviceScope.Setup(m => m.ServiceProvider).Returns(serviceProvider.Object);
-
         var repository = new Mock<IIntegrationEventRepository>();
-        serviceProvider.Setup(m => m.GetService(typeof(IIntegrationEventRepository))).Returns(repository.Object);
         repository.Setup(m => m.FindAsync(integrationEventEntityId, default)).ReturnsAsync(entry);
         repository.Setup(m => m.SaveAsync(entry, default)).ThrowsAsync(new Exception());
 
         var eventConsumer = new Mock<IEventConsumer>();
-        serviceProvider.Setup(m => m.GetService(typeof(IEventConsumer))).Returns(eventConsumer.Object);
 
         var logger = new Mock<ILogger<InboxWorker>>();
 
-        var inboxWorker = new InboxWorker(serviceProvider.Object, logger.Object);
+        var inboxWorker = new InboxWorker(repository.Object, eventConsumer.Object, logger.Object);
 
         // When
         await inboxWorker.ProcessAsync<SomethingIntegrationEvent>(integrationEvent, default);
@@ -174,25 +134,15 @@ public class InboxWorkerTests
         var payload = entry.GetPayload();
         var integrationEvent = payload.Deserialize<SomethingIntegrationEvent>();
 
-        var serviceProvider = new Mock<IServiceProvider>();
-        var serviceScopeFactory = new Mock<IServiceScopeFactory>();
-        var serviceScope = new Mock<IServiceScope>();
-
-        serviceProvider.Setup(m => m.GetService(typeof(IServiceScopeFactory))).Returns(serviceScopeFactory.Object);
-        serviceScopeFactory.Setup(m => m.CreateScope()).Returns(serviceScope.Object);
-        serviceScope.Setup(m => m.ServiceProvider).Returns(serviceProvider.Object);
-
         var repository = new Mock<IIntegrationEventRepository>();
-        serviceProvider.Setup(m => m.GetService(typeof(IIntegrationEventRepository))).Returns(repository.Object);
         repository.Setup(m => m.FindAsync(integrationEventEntityId, default)).ReturnsAsync(entry);
 
         var eventConsumer = new Mock<IEventConsumer>();
         eventConsumer.Setup(m => m.ConsumeAsync(It.IsAny<IIntegrationEvent>(), default)).ThrowsAsync(new Exception());
-        serviceProvider.Setup(m => m.GetService(typeof(IEventConsumer))).Returns(eventConsumer.Object);
 
         var logger = new Mock<ILogger<InboxWorker>>();
 
-        var inboxWorker = new InboxWorker(serviceProvider.Object, logger.Object);
+        var inboxWorker = new InboxWorker(repository.Object, eventConsumer.Object, logger.Object);
 
         // When
         await inboxWorker.ProcessAsync<SomethingIntegrationEvent>(integrationEvent, default);
