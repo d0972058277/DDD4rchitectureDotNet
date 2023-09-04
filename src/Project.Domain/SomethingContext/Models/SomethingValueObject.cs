@@ -30,7 +30,7 @@ public class SomethingValueObject : ValueObject
 
     public static Result<SomethingValueObject> Create(string @string, int number, bool boolean, DateTime dateTime)
     {
-        var specification = SomethingValueObjectSpecification<SomethingValueObject>.Create(
+        var specification = Specification<SomethingValueObject>.Create(
             x => x.String,
             x => x.Number,
             x => x.Boolean,
@@ -39,14 +39,14 @@ public class SomethingValueObject : ValueObject
         return specification.IsSatisfiedBy(instance);
     }
 
-    public class SomethingValueObjectSpecification<T> : Specification<T>
+    public class Specification<T> : SpecificationBase<T>
     {
         private readonly Expression<Func<T, string>> _stringExpression;
         private readonly Expression<Func<T, int>> _numberExpression;
         private readonly Expression<Func<T, bool>> _booleanExpression;
         private readonly Expression<Func<T, DateTime>> _dateTimeExpression;
 
-        private SomethingValueObjectSpecification(Expression<Func<T, string>> stringExpression, Expression<Func<T, int>> numberExpression, Expression<Func<T, bool>> booleanExpression, Expression<Func<T, DateTime>> dateTimeExpression)
+        private Specification(Expression<Func<T, string>> stringExpression, Expression<Func<T, int>> numberExpression, Expression<Func<T, bool>> booleanExpression, Expression<Func<T, DateTime>> dateTimeExpression)
         {
             _stringExpression = stringExpression;
             _numberExpression = numberExpression;
@@ -54,30 +54,17 @@ public class SomethingValueObject : ValueObject
             _dateTimeExpression = dateTimeExpression;
         }
 
-        protected override Func<T, Result<T>> Validate() => arg =>
+        public override IEnumerable<SpecificationRule<T>> GetRules()
         {
-            var @string = _stringExpression.Compile()(arg);
-            if (string.IsNullOrWhiteSpace(@string))
-                return Result.Failure<T>($"{_stringExpression.GetPropertyName()} 不可為空");
+            yield return new SpecificationRule<T>($"{_stringExpression.GetPropertyName()} 應該不可為空或空字串", arg => !string.IsNullOrWhiteSpace(_stringExpression.Compile()(arg)));
+            yield return new SpecificationRule<T>($"{_numberExpression.GetPropertyName()} 應該大於等於 0", arg => _numberExpression.Compile()(arg) >= 0);
+            yield return new SpecificationRule<T>($"{_booleanExpression.GetPropertyName()} 應該為 True", arg => _booleanExpression.Compile()(arg));
+            yield return new SpecificationRule<T>($"{_dateTimeExpression.GetPropertyName()} 應該大於等於系統的現在時間(UTC)", arg => _dateTimeExpression.Compile()(arg) >= SystemDateTime.UtcNow);
+        }
 
-            var number = _numberExpression.Compile()(arg);
-            if (number < 0)
-                return Result.Failure<T>($"{_numberExpression.GetPropertyName()} 不可小於 0");
-
-            var boolean = _booleanExpression.Compile()(arg);
-            if (!boolean)
-                return Result.Failure<T>($"{_booleanExpression.GetPropertyName()} 不可為 False");
-
-            var dateTime = _dateTimeExpression.Compile()(arg);
-            if (dateTime < SystemDateTime.UtcNow)
-                return Result.Failure<T>($"{_dateTimeExpression.GetGenericTypeName()} 不可小於系統的現在時間(UTC)");
-
-            return arg;
-        };
-
-        public static SomethingValueObjectSpecification<T> Create(Expression<Func<T, string>> stringExpression, Expression<Func<T, int>> numberExpression, Expression<Func<T, bool>> booleanExpression, Expression<Func<T, DateTime>> dateTimeExpression)
+        public static Specification<T> Create(Expression<Func<T, string>> stringExpression, Expression<Func<T, int>> numberExpression, Expression<Func<T, bool>> booleanExpression, Expression<Func<T, DateTime>> dateTimeExpression)
         {
-            return new SomethingValueObjectSpecification<T>(stringExpression, numberExpression, booleanExpression, dateTimeExpression);
+            return new Specification<T>(stringExpression, numberExpression, booleanExpression, dateTimeExpression);
         }
     }
 }
