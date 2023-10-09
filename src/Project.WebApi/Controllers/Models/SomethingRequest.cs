@@ -1,4 +1,5 @@
 using Architecture;
+using Architecture.Core;
 using FluentValidation;
 using Project.Domain.SomethingContext.Models;
 using Swashbuckle.AspNetCore.Filters;
@@ -28,10 +29,10 @@ public class SomethingRequest
         public BodyValidator()
         {
             var specification = SomethingValueObject.Specification<Body>.Create(
-                x => x.String,
-                x => x.Number,
-                x => x.Boolean,
-                x => x.DateTime
+                Selector<Body>.Set(x => x.String),
+                Selector<Body>.Set(x => x.Number),
+                Selector<Body>.Set(x => x.Boolean),
+                Selector<Body>.Set(x => x.DateTime)
             );
 
             this.UseSpecification(specification);
