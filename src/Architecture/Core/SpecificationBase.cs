@@ -6,15 +6,11 @@ public abstract class SpecificationBase<T>
 {
     private IReadOnlyList<SpecificationRule<T>>? _specificationRules;
 
-    private IReadOnlyList<SpecificationRule<T>> GetSpecificationRules()
-    {
-        _specificationRules ??= GetRules().ToList();
-        return _specificationRules;
-    }
+    protected abstract IEnumerable<SpecificationRule<T>> GetSpecificationRules();
 
     public Result<T> IsSatisfiedBy(T entity)
     {
-        foreach (var rule in GetSpecificationRules())
+        foreach (var rule in GetRules())
         {
             if (!rule.Validate(entity))
             {
@@ -25,5 +21,9 @@ public abstract class SpecificationBase<T>
         return entity;
     }
 
-    public abstract IEnumerable<SpecificationRule<T>> GetRules();
+    public IReadOnlyList<SpecificationRule<T>> GetRules()
+    {
+        _specificationRules ??= GetSpecificationRules().ToList();
+        return _specificationRules;
+    }
 }

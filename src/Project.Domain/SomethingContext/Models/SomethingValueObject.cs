@@ -53,7 +53,7 @@ public class SomethingValueObject : ValueObject
             _dateTimeSelector = dateTimeSelector;
         }
 
-        public override IEnumerable<SpecificationRule<T>> GetRules()
+        protected override IEnumerable<SpecificationRule<T>> GetSpecificationRules()
         {
             yield return new SpecificationRule<T>($"{_stringSelector.PropertyName} 應該不可為空或空字串", arg => !string.IsNullOrWhiteSpace(_stringSelector.GetValue(arg)));
             yield return new SpecificationRule<T>($"{_numberSelector.PropertyName} 應該大於等於 0", arg => _numberSelector.GetValue(arg) >= 0);
