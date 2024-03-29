@@ -6,9 +6,11 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MySqlConnector;
 using Project.Infrastructure;
 using Project.Infrastructure.DbCommandInterceptors;
 using Project.Infrastructure.EventBusContext.Inbox;
+using RabbitMQ.Client;
 using Serilog;
 using Serilog.Exceptions;
 using Serilog.Exceptions.Core;
@@ -20,7 +22,9 @@ public class Startup
 {
     public void ConfigureServices(IServiceCollection services, HostBuilderContext hostBuilderContext)
     {
-        var connectionString = hostBuilderContext.Configuration.GetValue<string>("MySqlConnectionString");
+        var connectionString = hostBuilderContext.Configuration.GetValue<string>("MySqlConnectionString")!;
+        CheckDatabase(connectionString);
+        CheckRabbitMq();
 
         SystemDateTime.InitUtcNow(() =>
         {
@@ -84,5 +88,17 @@ public class Startup
                     .Enrich.WithProperty("EnvironmentName", Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")!)
                     .Enrich.WithProperty("RuntimeId", Guid.NewGuid().ToString());
             });
+    }
+
+    private void CheckDatabase(string connectionString)
+    {
+        using var connection = new MySqlConnection(connectionString);
+        connection.Open();
+    }
+
+    private void CheckRabbitMq()
+    {
+        using var connection = new ConnectionFactory() { HostName = "localhost", UserName = "guest", Password = "guest" }.CreateConnection();
+        using var channel = connection.CreateModel();
     }
 }
