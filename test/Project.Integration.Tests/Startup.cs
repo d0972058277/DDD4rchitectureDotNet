@@ -23,7 +23,7 @@ public class Startup
     public void ConfigureServices(IServiceCollection services, HostBuilderContext hostBuilderContext)
     {
         var connectionString = hostBuilderContext.Configuration.GetValue<string>("MySqlConnectionString")!;
-        CheckDatabase(connectionString);
+        CheckDatabase();
         CheckRabbitMq();
 
         SystemDateTime.InitUtcNow(() =>
@@ -90,9 +90,9 @@ public class Startup
             });
     }
 
-    private void CheckDatabase(string connectionString)
+    private void CheckDatabase()
     {
-        using var connection = new MySqlConnection(connectionString);
+        using var connection = new MySqlConnection("Server=localhost; Port=3306; User ID=root; Password=root;");
         connection.Open();
     }
 
