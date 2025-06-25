@@ -64,9 +64,12 @@ This codebase implements Domain-Driven Design (DDD) with Clean Architecture prin
 **Aggregate Design**: Aggregates are the transaction boundaries. Each aggregate root inherits from AggregateRoot base class and enforces business invariants.
 
 ### Database and Messaging
-- **Database**: MySQL with Entity Framework Core. Connection string is configured in appsettings.json
+- **Database**: MySQL with Entity Framework Core 8.0. Connection string is configured in appsettings.json
 - **Message Bus**: RabbitMQ via MassTransit for integration events
 - **Background Jobs**: Hangfire for processing outbox messages and other background tasks
+
+### .NET Version
+This project targets .NET 8.0 and uses the latest compatible package versions.
 
 ### Testing Strategy
 - **Unit Tests**: Test domain logic and application handlers in isolation using xUnit, FluentAssertions, and Moq
