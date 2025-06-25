@@ -22,9 +22,10 @@ public class Startup
 {
     public void ConfigureServices(IServiceCollection services, HostBuilderContext hostBuilderContext)
     {
+        // TODO: refactor to use [TestContainers]
         var connectionString = hostBuilderContext.Configuration.GetValue<string>("MySqlConnectionString")!;
-        CheckDatabase();
-        CheckRabbitMq();
+        CheckDatabaseAsync().Wait();
+        CheckRabbitMqAsync().Wait();
 
         SystemDateTime.InitUtcNow(() =>
         {
@@ -81,24 +82,28 @@ public class Startup
                 loggerConfiguration.ReadFrom.Configuration(configuration)
                     .Enrich.WithExceptionDetails
                     (
-                        new DestructuringOptionsBuilder().WithDefaultDestructurers().WithDestructurers(new[] { new DbUpdateExceptionDestructurer() })
+                        new DestructuringOptionsBuilder().WithDefaultDestructurers()
+                            .WithDestructurers(new[] { new DbUpdateExceptionDestructurer() })
                     )
                     .Enrich.FromLogContext()
                     .Enrich.WithProperty("ApplicationName", AppDomain.CurrentDomain.FriendlyName)
-                    .Enrich.WithProperty("EnvironmentName", Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")!)
+                    .Enrich.WithProperty("EnvironmentName",
+                        Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")!)
                     .Enrich.WithProperty("RuntimeId", Guid.NewGuid().ToString());
             });
     }
 
-    private void CheckDatabase()
+    private async Task CheckDatabaseAsync()
     {
-        using var connection = new MySqlConnection("Server=localhost; Port=3306; User ID=root; Password=root;");
-        connection.Open();
+        await using var connection = new MySqlConnection("Server=localhost; Port=3306; User ID=root; Password=root;");
+        await connection.OpenAsync();
     }
 
-    private void CheckRabbitMq()
+    private async Task CheckRabbitMqAsync()
     {
-        using var connection = new ConnectionFactory() { HostName = "localhost", UserName = "guest", Password = "guest" }.CreateConnection();
-        using var channel = connection.CreateModel();
+        var connectionFactory = new ConnectionFactory()
+            { HostName = "localhost", UserName = "guest", Password = "guest" };
+        await using var connection = await connectionFactory.CreateConnectionAsync();
+        await using var channel = await connection.CreateChannelAsync();
     }
 }

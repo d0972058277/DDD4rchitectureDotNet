@@ -24,9 +24,9 @@ jobs:
       run: docker run -d --name rabbitmq -p 15672:15672 -p 5672:5672 rabbitmq:management
       
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 8.0.x
         
     - name: Restore dependencies
       run: dotnet restore
