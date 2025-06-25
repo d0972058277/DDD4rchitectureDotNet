@@ -1,28 +1,27 @@
 using CSharpFunctionalExtensions;
 
-namespace Architecture.Core
+namespace Architecture.Core;
+
+public abstract class AggregateRoot<TId> : Entity<TId>, IAggregateRoot where TId : IComparable<TId>
 {
-    public abstract class AggregateRoot<TId> : Entity<TId>, IAggregateRoot where TId : IComparable<TId>
+    protected AggregateRoot() : base() { }
+    protected AggregateRoot(TId id) : base(id) { }
+
+    private readonly List<IDomainEvent> _domainEvents = [];
+    public IReadOnlyList<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+
+    protected void AddDomainEvent(IDomainEvent domainEvent)
     {
-        protected AggregateRoot() : base() { }
-        protected AggregateRoot(TId id) : base(id) { }
-
-        private readonly List<IDomainEvent> _domainEvents = new();
-        public IReadOnlyList<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
-
-        protected void AddDomainEvent(IDomainEvent domainEvent)
-        {
-            _domainEvents.Add(domainEvent);
-        }
-
-        public void ClearDomainEvents()
-        {
-            _domainEvents.Clear();
-        }
+        _domainEvents.Add(domainEvent);
     }
 
-    public abstract class AggregateRoot : AggregateRoot<Guid>
+    public void ClearDomainEvents()
     {
-        protected AggregateRoot(Guid id) : base(id) { }
+        _domainEvents.Clear();
     }
+}
+
+public abstract class AggregateRoot : AggregateRoot<Guid>
+{
+    protected AggregateRoot(Guid id) : base(id) { }
 }

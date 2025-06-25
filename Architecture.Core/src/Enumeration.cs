@@ -8,23 +8,28 @@ public abstract class Enumeration : IComparable
 
     public int Id { get; private set; }
 
-    protected Enumeration(int id, string name) => (Id, Name) = (id, name);
+    protected Enumeration(int id, string name)
+    {
+        (Id, Name) = (id, name);
+    }
 
-    public override string ToString() => Name;
+    public override string ToString()
+    {
+        return Name;
+    }
 
-    public static IEnumerable<T> GetAll<T>() where T : Enumeration =>
-        typeof(T).GetFields(BindingFlags.Public |
-                            BindingFlags.Static |
-                            BindingFlags.DeclaredOnly)
-                    .Select(f => f.GetValue(null))
-                    .Cast<T>();
+    public static IEnumerable<T> GetAll<T>() where T : Enumeration
+    {
+        return typeof(T).GetFields(BindingFlags.Public |
+                                   BindingFlags.Static |
+                                   BindingFlags.DeclaredOnly)
+            .Select(f => f.GetValue(null))
+            .Cast<T>();
+    }
 
     public override bool Equals(object? obj)
     {
-        if (obj is not Enumeration otherValue)
-        {
-            return false;
-        }
+        if (obj is not Enumeration otherValue) return false;
 
         var typeMatches = GetType().Equals(obj.GetType());
         var valueMatches = Id.Equals(otherValue.Id);
@@ -32,7 +37,10 @@ public abstract class Enumeration : IComparable
         return typeMatches && valueMatches;
     }
 
-    public override int GetHashCode() => Id.GetHashCode();
+    public override int GetHashCode()
+    {
+        return Id.GetHashCode();
+    }
 
     public static int AbsoluteDifference(Enumeration firstValue, Enumeration secondValue)
     {
@@ -65,9 +73,7 @@ public abstract class Enumeration : IComparable
     public int CompareTo(object? obj)
     {
         if (obj is not Enumeration otherValue)
-        {
             throw new ArgumentException($"Argument is not of type {nameof(Enumeration)}", nameof(obj));
-        }
 
         return Id.CompareTo(otherValue.Id);
     }
