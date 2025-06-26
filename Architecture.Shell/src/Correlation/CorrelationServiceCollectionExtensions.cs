@@ -1,5 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Http;
+using Architecture.Shell.Correlation.Http;
+#if !NETSTANDARD2_0
+using Architecture.Shell.Correlation.Grpc;
+#endif
 
 namespace Architecture.Shell.Correlation;
 
@@ -23,7 +28,43 @@ public static class CorrelationServiceCollectionExtensions
         services.TryAddSingleton<ICorrelationContextAccessor, CorrelationContextAccessor>();
         services.TryAddTransient<ICorrelationContextFactory, CorrelationContextFactory>();
         services.TryAddTransient<ICorrelationService, CorrelationService>();
+        services.TryAddTransient<ICorrelationPropagator, CorrelationPropagator>();
+
+        // Register protocol handlers
+        services.TryAddEnumerable(ServiceDescriptor.Transient<ICorrelationProtocolHandler, HttpCorrelationProtocolHandler>());
+#if !NETSTANDARD2_0
+        services.TryAddEnumerable(ServiceDescriptor.Transient<ICorrelationProtocolHandler, GrpcCorrelationProtocolHandler>());
+#endif
 
         return services;
+    }
+
+    /// <summary>
+    /// Adds correlation support for HTTP clients
+    /// </summary>
+    public static IServiceCollection AddHttpCorrelation(this IServiceCollection services)
+    {
+        services.TryAddTransient<HttpCorrelationHandler>();
+        return services;
+    }
+
+#if !NETSTANDARD2_0
+    /// <summary>
+    /// Adds correlation support for gRPC clients and servers
+    /// </summary>
+    public static IServiceCollection AddGrpcCorrelation(this IServiceCollection services)
+    {
+        services.TryAddTransient<GrpcCorrelationClientInterceptor>();
+        services.TryAddTransient<GrpcCorrelationServerInterceptor>();
+        return services;
+    }
+#endif
+
+    /// <summary>
+    /// Configures HttpClient to automatically propagate correlation IDs
+    /// </summary>
+    public static IHttpClientBuilder AddCorrelationPropagation(this IHttpClientBuilder builder)
+    {
+        return builder.AddHttpMessageHandler<HttpCorrelationHandler>();
     }
 }
