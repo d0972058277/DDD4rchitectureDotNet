@@ -3,7 +3,13 @@
     "allow": [
       "Bash(dotnet test:*)",
       "Bash(dotnet build)",
-      "Bash(dotnet build:*)"
+      "Bash(dotnet build:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(find:*)",
+      "Bash(dotnet restore:*)",
+      "Bash(dotnet pack:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }
