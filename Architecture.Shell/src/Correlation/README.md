@@ -1,207 +1,149 @@
-# Correlation ID Support for Microservices
+# Correlation 關聯性識別碼
 
-This library provides comprehensive correlation ID support across multiple communication protocols commonly used in microservices architectures.
+本目錄包含微服務架構中關聯性識別碼 (Correlation ID) 的完整實作，支援多種通訊協議的端到端分散式追蹤。
 
-## Supported Protocols
+## 📁 目錄結構
 
-- **HTTP/REST APIs** (ASP.NET Core, HttpClient)
-- **gRPC** (Client & Server interceptors)
-- **Generic metadata containers** (IDictionary-based)
+```
+Correlation/
+├── 關聯性識別碼文檔.md          # 完整的中文使用指南
+├── README.md                    # 本文件
+├── 核心檔案/
+│   ├── CorrelationContext.cs           # 關聯性上下文
+│   ├── ICorrelationService.cs          # 關聯性服務介面
+│   ├── CorrelationService.cs           # 關聯性服務實作
+│   ├── ICorrelationPropagator.cs       # 傳播器介面
+│   ├── CorrelationPropagator.cs        # 傳播器實作
+│   ├── ICorrelationProtocolHandler.cs  # 協議處理器介面
+│   ├── ICorrelationContextAccessor.cs  # 上下文存取器介面
+│   ├── CorrelationContextAccessor.cs   # 上下文存取器實作
+│   ├── ICorrelationContextFactory.cs   # 上下文工廠介面
+│   ├── CorrelationContextFactory.cs    # 上下文工廠實作
+│   ├── CorrelationIdOptions.cs         # 配置選項
+│   ├── CorrelationMiddleware.cs         # ASP.NET Core 中介軟體
+│   ├── CorrelationServiceCollectionExtensions.cs  # DI 擴展方法
+│   └── CorrelationApplicationBuilderExtensions.cs # 應用程式建構器擴展
+├── Http/
+│   ├── HttpCorrelationProtocolHandler.cs  # HTTP 協議處理器
+│   └── HttpCorrelationHandler.cs          # HTTP 客戶端處理器
+├── Grpc/
+│   ├── GrpcCorrelationProtocolHandler.cs  # gRPC 協議處理器
+│   └── GrpcCorrelationInterceptor.cs      # gRPC 攔截器
+└── Messaging/
+    ├── RabbitMqCorrelationProtocolHandler.cs  # RabbitMQ 協議處理器
+    ├── RabbitMqCorrelationIntegration.cs      # RabbitMQ 整合輔助類別
+    ├── KafkaCorrelationProtocolHandler.cs     # Kafka 協議處理器
+    ├── KafkaCorrelationIntegration.cs         # Kafka 整合輔助類別
+    └── 訊息佇列使用範例.md                     # 訊息佇列使用範例
+```
 
-## Basic Setup
+## 🚀 快速開始
 
-### 1. Register Core Services
+### 1. 基本設定
 
 ```csharp
-// Program.cs or Startup.cs
+// 註冊核心服務
 services.AddCorrelation(options =>
 {
     options.RequestHeader = "X-Correlation-ID";
-    options.IncludeInResponse = true;
     options.AddToLoggingScope = true;
 });
 
-// For HTTP middleware
+// 註冊 ASP.NET Core 中介軟體
 app.UseCorrelation();
 ```
 
-### 2. HTTP Client Support
+### 2. 通訊協議支援
 
 ```csharp
-// Register HTTP correlation support
+// HTTP 支援
 services.AddHttpCorrelation();
+services.AddHttpClient<MyApiClient>()
+    .AddCorrelationPropagation();
 
-// Configure named HTTP clients
-services.AddHttpClient<MyApiClient>(client =>
-{
-    client.BaseAddress = new Uri("https://api.example.com");
-})
-.AddCorrelationPropagation(); // Automatically adds correlation headers
-
-// Or configure all HTTP clients globally
-services.ConfigureAll<HttpClientFactoryOptions>(options =>
-{
-    options.HttpMessageHandlerBuilderActions.Add(builder =>
-    {
-        builder.AdditionalHandlers.Add(builder.Services.GetRequiredService<HttpCorrelationHandler>());
-    });
-});
-```
-
-### 3. gRPC Support
-
-```csharp
-// Register gRPC correlation support
+// gRPC 支援
 services.AddGrpcCorrelation();
-
-// Server-side: Add interceptor to gRPC services
-services.AddGrpc(options =>
+services.AddGrpc(options => 
 {
     options.Interceptors.Add<GrpcCorrelationServerInterceptor>();
 });
 
-// Client-side: Configure gRPC client with interceptor
-services.AddGrpcClient<MyGrpcService.MyGrpcServiceClient>(options =>
-{
-    options.Address = new Uri("https://grpc.example.com");
-})
-.AddInterceptor<GrpcCorrelationClientInterceptor>();
-
-// Or manually configure client
-var channel = GrpcChannel.ForAddress("https://grpc.example.com");
-var client = new MyGrpcService.MyGrpcServiceClient(channel)
-    .Intercept(serviceProvider.GetRequiredService<GrpcCorrelationClientInterceptor>());
+// 訊息佇列支援 (RabbitMQ + Kafka)
+services.AddMessagingCorrelation();
 ```
 
-## Manual Propagation
+## 📖 詳細文檔
 
-For custom protocols or scenarios requiring manual control:
+請參閱 **[關聯性識別碼文檔.md](./關聯性識別碼文檔.md)** 獲取：
 
-```csharp
-public class CustomServiceClient
-{
-    private readonly ICorrelationPropagator _correlationPropagator;
-    
-    public CustomServiceClient(ICorrelationPropagator correlationPropagator)
-    {
-        _correlationPropagator = correlationPropagator;
-    }
-    
-    public async Task CallServiceAsync()
-    {
-        // For custom metadata containers
-        var metadata = new Dictionary<string, string>();
-        _correlationPropagator.Inject(metadata);
-        
-        // Send request with metadata...
-    }
-    
-    public void HandleIncomingRequest(IDictionary<string, string> headers)
-    {
-        // Extract correlation ID from incoming metadata
-        var correlationId = _correlationPropagator.Extract(headers);
-        
-        if (!string.IsNullOrEmpty(correlationId))
-        {
-            // Set up correlation context for this request
-            // This would typically be done by protocol-specific middleware
-        }
-    }
-}
-```
+- 完整的架構說明
+- 所有支援協議的使用範例
+- 配置選項詳解
+- 高級功能與最佳實踐
+- 效能考量與疑難排解
 
-## Custom Protocol Support
+## 🎯 主要特性
 
-To add support for a new protocol, implement `ICorrelationProtocolHandler`:
+### ✅ 多協議支援
 
-```csharp
-public class MyProtocolHandler : ICorrelationProtocolHandler
-{
-    public Type MetadataType => typeof(MyProtocolMetadata);
+- **HTTP/REST APIs**: ASP.NET Core middleware、HttpClient 自動注入
+- **gRPC**: Client & Server interceptors
+- **RabbitMQ**: IBasicProperties.Headers 處理
+- **Kafka**: Headers 與 Message 支援，byte[] 轉換
+- **IceRPC**: 透過 IDictionary fallback 機制
+- **自訂協議**: 實作 ICorrelationProtocolHandler 介面
 
-    public void Inject(object metadata, string headerName, string correlationId)
-    {
-        if (metadata is MyProtocolMetadata myMetadata)
-        {
-            myMetadata.Headers[headerName] = correlationId;
-        }
-    }
+### ✅ 自動化功能
 
-    public string? Extract(object metadata, string headerName)
-    {
-        if (metadata is MyProtocolMetadata myMetadata)
-        {
-            return myMetadata.Headers.TryGetValue(headerName, out var value) ? value : null;
-        }
-        return null;
-    }
-}
+- **自動提取**: 從傳入請求中提取關聯性 ID
+- **自動注入**: 將關聯性 ID 注入到外發請求
+- **上下文管理**: 執行緒安全的 AsyncLocal 儲存
+- **日誌整合**: 自動加入到結構化日誌作用域
 
-// Register your custom handler
-services.AddTransient<ICorrelationProtocolHandler, MyProtocolHandler>();
-```
+### ✅ 企業級功能
 
-## Advanced Scenarios
+- **錯誤關聯**: 在錯誤追蹤中包含關聯性 ID
+- **效能監控**: 最小化效能影響
+- **可擴展性**: 支援自訂協議和處理邏輯
+- **可觀察性**: 與 OpenTelemetry 等工具整合
 
-### Service-to-Service Communication Chain
+## 🔄 工作流程
 
 ```
-API Gateway → Service A → Service B → Service C
-     ↓           ↓           ↓           ↓
-  Generate    Propagate   Propagate   Propagate
-     ID      via HTTP    via gRPC    via Custom
+┌─────────────┐    HTTP/gRPC/MQ     ┌─────────────┐
+│   服務 A    │ ──── Correlation ──→ │   服務 B    │
+│             │      ID Inject      │             │
+│ ┌─────────┐ │                     │ ┌─────────┐ │
+│ │ Request │ │                     │ │ Extract │ │
+│ │ Handler │ │                     │ │ Context │ │
+│ └─────────┘ │                     │ └─────────┘ │
+└─────────────┘                     └─────────────┘
+       │                                   │
+       ▼                                   ▼
+┌─────────────┐                   ┌─────────────┐
+│ Logging     │                   │ Logging     │
+│ Scope       │                   │ Scope       │
+│ + Corr ID   │                   │ + Corr ID   │
+└─────────────┘                   └─────────────┘
 ```
 
-Each service automatically:
-1. Extracts correlation ID from incoming requests
-2. Sets up correlation context for the request scope
-3. Injects correlation ID into all outgoing calls
-4. Includes correlation ID in structured logs
+## 📊 測試覆蓋率
 
-### Error Correlation
+本實作包含 **133 個單元測試**，涵蓋：
 
-```csharp
-public class GlobalExceptionHandler
-{
-    private readonly ICorrelationService _correlationService;
-    private readonly ILogger<GlobalExceptionHandler> _logger;
+- 核心功能測試：52 個
+- HTTP 協議測試：12 個
+- gRPC 協議測試：5 個
+- RabbitMQ 協議測試：14 個
+- Kafka 協議測試：12 個
+- 整合測試：38 個
 
-    public async Task HandleAsync(HttpContext context, Exception exception)
-    {
-        var correlationId = _correlationService.CorrelationId;
-        
-        _logger.LogError(exception, 
-            "Unhandled exception occurred. CorrelationId: {CorrelationId}", 
-            correlationId);
-            
-        // Return correlation ID in error response for client-side correlation
-        context.Response.Headers["X-Correlation-ID"] = correlationId.ToString();
-    }
-}
-```
+## 🤝 貢獻指南
 
-## Configuration Options
+1. 閱讀完整文檔了解架構
+2. 確保所有測試通過
+3. 遵循既有的程式碼風格
+4. 為新功能添加對應測試
+5. 更新相關文檔
 
-```csharp
-services.AddCorrelation(options =>
-{
-    // Header configuration
-    options.RequestHeader = "X-Correlation-ID";          // Default: "X-Correlation-ID"
-    options.ResponseHeader = "X-Response-Correlation";   // Default: same as RequestHeader
-    
-    // Behavior options
-    options.IgnoreRequestHeader = false;                 // Default: false
-    options.EnforceHeader = true;                        // Default: false (returns 400 if missing)
-    options.IncludeInResponse = true;                    // Default: true
-    options.UpdateTraceIdentifier = true;               // Default: false
-    
-    // Logging integration
-    options.AddToLoggingScope = true;                    // Default: false
-    options.LoggingScopeKey = "CorrelationId";          // Default: "CorrelationId"
-    
-    // Custom ID generation
-    options.CorrelationIdGenerator = () => $"custom-{Guid.NewGuid():N}";
-});
-```
-
-This comprehensive solution ensures correlation IDs flow seamlessly across all your microservice communication boundaries, regardless of the underlying protocol.
+---
