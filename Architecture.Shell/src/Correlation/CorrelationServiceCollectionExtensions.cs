@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Http;
 using Architecture.Shell.Correlation.Http;
+using Architecture.Shell.Correlation.Messaging;
 #if !NETSTANDARD2_0
 using Architecture.Shell.Correlation.Grpc;
 #endif
@@ -66,5 +67,20 @@ public static class CorrelationServiceCollectionExtensions
     public static IHttpClientBuilder AddCorrelationPropagation(this IHttpClientBuilder builder)
     {
         return builder.AddHttpMessageHandler<HttpCorrelationHandler>();
+    }
+
+    /// <summary>
+    /// Adds correlation support for messaging protocols (RabbitMQ, Kafka)
+    /// </summary>
+    public static IServiceCollection AddMessagingCorrelation(this IServiceCollection services)
+    {
+        services.TryAddEnumerable(ServiceDescriptor.Transient<ICorrelationProtocolHandler, RabbitMqCorrelationProtocolHandler>());
+        services.TryAddEnumerable(ServiceDescriptor.Transient<ICorrelationProtocolHandler, KafkaCorrelationProtocolHandler>());
+        
+        // Register integration helpers
+        services.TryAddTransient<RabbitMqCorrelationIntegration>();
+        services.TryAddTransient<KafkaCorrelationIntegration>();
+        
+        return services;
     }
 }
