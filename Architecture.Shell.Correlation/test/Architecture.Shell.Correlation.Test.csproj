@@ -20,6 +20,9 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.0" />
+    <PackageReference Include="Grpc.Core.Api" Version="2.66.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\Architecture.Shell.csproj" />
+    <ProjectReference Include="..\src\Architecture.Shell.Correlation.csproj" />
   </ItemGroup>
 
 </Project>

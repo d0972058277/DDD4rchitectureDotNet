@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.0"/>
+        <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0"/>
+        <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0"/>
+        <PackageReference Include="Grpc.Core.Api" Version="2.66.0" Condition="'$(TargetFramework)' != 'netstandard2.0'"/>
+        <PackageReference Include="RabbitMQ.Client" Version="6.8.1"/>
+        <PackageReference Include="Confluent.Kafka" Version="2.5.3"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="README.md" Pack="true" PackagePath=""/>
+        <None Include="關聯性識別碼文檔.md" Pack="true" PackagePath="docs/"/>
+        <None Include="Messaging/訊息佇列使用範例.md" Pack="true" PackagePath="docs/"/>
+    </ItemGroup>
+
+</Project>
